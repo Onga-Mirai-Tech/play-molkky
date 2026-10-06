@@ -190,6 +190,29 @@ test("記録の矛盾はエラーにする（手番違い・終了後の投擲�
   assert.throws(() => L.computeState({ ...game, throws: [...game.throws, { playerId: "p2", points: 1 }] }), /試合終了後/);
 });
 
+test("順位: 勝者 ＞ 残り点の高い順（同点は同順位） ＞ 失格者（後まで残った人が上）", () => {
+  // 5人: p1 が勝ち、p2 と p3 は同点、p4・p5 は失格（p4 が先に失格）
+  const inputs = [
+    12, 5, 5, 0, 0,
+    12, 1, 1, 0, 0,
+    12, 1, 1, 0, 0,   // p4 失格（3回目）→ p5 失格（3回目）
+    6, 1, 1,
+    8,                // p1: 12*3+6+8 = 50
+  ];
+  const { state } = play(inputs, { n: 5 });
+  assert.equal(state.winnerId, "p1");
+  const rows = L.ranking(state);
+  assert.deepEqual(rows.map((r) => [r.id, r.rank]), [
+    ["p1", 1], ["p2", 2], ["p3", 2], ["p5", null], ["p4", null],
+  ]);
+  assert.equal(rows[0].winner, true);
+});
+
+test("順位: 残り1人で終わったときは、その人が1位", () => {
+  const { state } = play([0, 0, 1, 0, 0, 1, 0, 0], { n: 3 });
+  assert.deepEqual(L.ranking(state).map((r) => [r.id, r.rank]), [["p3", 1], ["p2", null], ["p1", null]]);
+});
+
 test("T-14（ロジック部分）: 準備画面の入力チェック", () => {
   const ok = { ...L.DEFAULT_SETTINGS };
   assert.deepEqual(L.validateSetup(ok, 2), []);

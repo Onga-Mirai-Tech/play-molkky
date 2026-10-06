@@ -34,6 +34,7 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
 
   html, body { margin: 0; height: 100%; }
 
@@ -73,17 +74,106 @@
   }
   .screen.is-active { display: flex; }
 
-  h1 { font-size: 22px; margin: 0; }
-  h2 { font-size: 18px; margin: 0 0 8px; }
+  h1 { font-size: 24px; margin: 0; line-height: 1.2; }
+  h2 { font-size: 17px; margin: 0 0 4px; }
 
   .panel {
     background: #FFFFFF;
     border: 2px solid var(--line);
     border-radius: var(--radius);
-    padding: 16px;
+    padding: 12px 16px;
   }
 
-  .placeholder { color: var(--text-sub); margin: 0; }
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+
+  /* ===== 準備画面 ===== */
+  .app-head {
+    display: flex; align-items: center; gap: 12px;
+    margin: -16px -16px 0; padding: 14px 16px 12px;
+    background:
+      repeating-linear-gradient(100deg, rgba(201,162,114,.12) 0 6px, transparent 6px 14px),
+      var(--surface);
+    border-bottom: 2px solid var(--line);
+  }
+  .app-head .sub { margin: 2px 0 0; font-size: 13px; color: var(--text-sub); }
+
+  .field {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 6px 12px; padding: 8px 0;
+  }
+  .field + .field { border-top: 1px dashed var(--line); }
+  /* 狭い画面では、ことばの途中ではなく空白のところで改行する */
+  .field-label { flex: 1 1 7.5em; word-break: keep-all; overflow-wrap: anywhere; }
+  .field-ctrl { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .unit { font-weight: 700; }
+
+  .num {
+    width: 4.4em; min-height: 48px; text-align: center;
+    font-family: var(--font-num); font-size: 22px; font-weight: 700;
+    border: 2px solid var(--line); border-radius: 10px; background: var(--bg);
+  }
+  .num:disabled { opacity: .45; }
+  .num.small { width: 3.2em; }
+
+  .seg { display: inline-flex; border: 2px solid var(--accent); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    min-height: 44px; min-width: 0; border: 0; border-radius: 0; background: #FFFFFF;
+    padding: 0 12px; font-size: 14px; font-weight: 700;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); }
+
+  /* オン／オフのスイッチ（button role="switch"） */
+  button.switch {
+    position: relative; flex: none;
+    width: 60px; min-width: 60px; height: 36px; min-height: 36px;
+    border: 0; border-radius: 999px; background: #D9C6AE; padding: 0;
+  }
+  button.switch::after {
+    content: ""; position: absolute; top: 4px; left: 4px;
+    width: 28px; height: 28px; border-radius: 50%; background: #FFFFFF;
+    transition: transform .15s;
+  }
+  button.switch[aria-checked="true"] { background: var(--accent); }
+  button.switch[aria-checked="true"]::after { transform: translateX(24px); }
+
+  .summary {
+    margin: 8px 0 0; padding: 8px 10px; border-radius: 10px;
+    background: var(--accent-soft); font-size: 14px; font-weight: 700;
+  }
+  button.link-btn {
+    display: block; margin: 4px 0 0 auto; min-height: 44px; min-width: 0;
+    border: 0; background: none; padding: 0 4px;
+    color: var(--accent); font-size: 14px; font-weight: 700;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  .players { list-style: none; margin: 0; padding: 0; }
+  .player { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+  .player + .player { border-top: 1px dashed var(--line); }
+  .badge {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-line); font-weight: 800; font-size: 14px;
+    display: grid; place-items: center;
+  }
+  .name-input {
+    flex: 1; min-width: 0; min-height: 48px; padding: 6px 10px;
+    border: 2px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 16px;
+  }
+  /* 並べかえ・削除は名前欄を広く取るため 44px 高（試合中のボタンは 56px 以上） */
+  button.mini {
+    flex: none; width: 38px; min-width: 38px; height: 44px; min-height: 44px; padding: 0;
+    border-radius: 10px; background: #FFFFFF; color: var(--text-sub); font-size: 14px;
+  }
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-row button { flex: 1; min-height: 48px; font-weight: 700; font-size: 15px; background: #FFFFFF; }
+
+  .errors {
+    margin: 0; padding: 8px 12px 8px 28px; border-radius: 10px;
+    background: #FFF1EC; border: 2px solid var(--fault); color: var(--fault); font-weight: 700; font-size: 14px;
+  }
+  .errors:empty { display: none; }
 
   .site-footer {
     margin-top: auto;
@@ -93,25 +183,202 @@
   }
   .site-footer a { color: inherit; }
   .site-footer p { margin: 0 0 4px; }
+
+  /* ===== 試合画面 ===== */
+  #screen-game { padding: 0; gap: 0; position: relative; }
+  #screen-game.is-active { height: 100vh; height: 100dvh; }
+
+  .turn {
+    background: var(--accent-soft); border-bottom: 2px solid var(--accent-line);
+    padding: 8px 16px; text-align: center;
+  }
+  .round {
+    display: inline-block; font-size: 13px; font-weight: 700; background: #FFFFFF;
+    border: 1px solid var(--accent-line); border-radius: 999px; padding: 0 12px;
+  }
+  .who { font-size: 24px; font-weight: 800; line-height: 1.3; margin-top: 2px; word-break: break-all; }
+  .left { font-size: 15px; }
+  .left b { font-family: var(--font-num); font-size: 24px; color: var(--accent); }
+  .warn {
+    display: inline-block; margin-top: 4px; padding: 2px 12px; border-radius: 999px;
+    background: #FFFFFF; border: 2px solid var(--miss); color: var(--miss); font-size: 13px; font-weight: 700;
+  }
+  .warn[hidden] { display: none; }
+
+  .board {
+    flex: 1; min-height: 0; overflow-y: auto; list-style: none; margin: 0;
+    padding: 8px 12px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .p-row {
+    display: grid; grid-template-columns: 16px 1fr auto 64px; align-items: center; gap: 8px;
+    background: #FFFFFF; border: 2px solid var(--line); border-radius: 12px; padding: 4px 10px;
+  }
+  .p-row.now { background: var(--accent-soft); border-color: var(--accent-line); box-shadow: 0 0 0 2px var(--accent-line); }
+  .p-row .mark { color: var(--accent); font-size: 14px; }
+  .p-row .nm { font-weight: 700; font-size: 16px; line-height: 1.25; overflow-wrap: anywhere; }
+  .p-row .meta { font-size: 12px; color: var(--text-sub); display: flex; flex-wrap: wrap; gap: 0 8px; align-items: center; }
+  .dots { color: var(--miss); letter-spacing: 1px; }
+  .p-row .score { font-family: var(--font-num); font-size: 32px; font-weight: 800; text-align: right; line-height: 1; }
+  .p-row .last { font-size: 12px; text-align: right; color: var(--text-sub); }
+  .p-row.out { background: #F4EEE7; border-style: dashed; color: var(--out); }
+  .p-row.out .nm { text-decoration: line-through; }
+  .tag {
+    font-size: 11px; font-weight: 700; border-radius: 999px; padding: 0 8px;
+    background: #FFFFFF; border: 1px solid var(--out); color: var(--out);
+  }
+
+  /* 入力直後に少しだけ、スコアボードの上に重ねて出すお知らせ */
+  .toast {
+    position: absolute; left: 12px; right: 12px; top: 120px; z-index: 2;
+    padding: 10px 12px; border-radius: 12px; text-align: center;
+    background: #FFFFFF; border: 2px solid var(--accent-line);
+    font-weight: 800; font-size: 17px;
+    box-shadow: 0 6px 16px rgba(74,47,27,.2);
+    pointer-events: none;
+    opacity: 0; transform: translateY(-6px); transition: opacity .15s, transform .15s;
+  }
+  .toast.show { opacity: 1; transform: none; }
+  .toast.over { border-color: var(--accent); }
+  .toast.miss { border-color: var(--miss); color: var(--miss); }
+  .toast.out { border-color: var(--out); color: var(--out); }
+
+  .pad {
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: var(--surface); border-top: 2px solid var(--line);
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .pad-q { grid-column: 1 / -1; font-size: 15px; font-weight: 800; margin: -2px 0; }
+  .step-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+  button.back {
+    min-height: 44px; min-width: 0; padding: 0 12px; border-radius: 999px;
+    background: #FFFFFF; font-size: 14px; font-weight: 700;
+  }
+
+  /* ステップ1「どうだった？」の4つのボタン */
+  button.choice {
+    grid-column: span 2; min-height: 72px; min-width: 0;
+    border-radius: 14px; border-color: var(--pin-edge); background: #FFFFFF;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 19px; line-height: 1.2;
+  }
+  button.choice small { font-size: 12px; font-weight: 700; }
+  button.choice.one { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  button.choice.many { background: #6B4226; border-color: #6B4226; color: #FFFFFF; }
+  button.choice.zero { border-color: var(--miss); color: var(--miss); }
+  button.choice.fault { border-color: var(--fault); color: var(--fault); }
+
+  /* 1本だけ: ピンの番号（木のピンの形） */
+  button.pin {
+    min-width: 0; height: 58px; border: 2px solid var(--pin-edge); background: var(--pin);
+    font-family: var(--font-num); font-size: 26px; font-weight: 800; padding-top: 6px;
+    border-radius: 6px 6px 12px 12px;
+    clip-path: polygon(0 18%, 100% 0, 100% 100%, 0 100%);
+  }
+  button.pin:active { background: var(--accent-line); }
+  /* 2本以上: 本数（ピンの形にしない、丸い札＋「本」） */
+  button.count {
+    min-width: 0; height: 58px; border-radius: 999px; border-color: #6B4226; background: #FFFFFF; color: #6B4226;
+    display: flex; align-items: baseline; justify-content: center; gap: 1px; padding-top: 10px; font-weight: 800;
+  }
+  button.count b { font-family: var(--font-num); font-size: 26px; line-height: 1; }
+  button.count small { font-size: 13px; }
+  button.count:active { background: #F3E3D3; }
+
+  .tools { grid-column: 1 / -1; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
+  .tools button { min-height: 48px; min-width: 0; padding: 0 4px; white-space: nowrap; font-size: 14px; font-weight: 700; background: #FFFFFF; }
+  @media (max-width: 359px) {
+    .tools button { font-size: 12px; }
+  }
+
+  /* ===== 結果画面 ===== */
+  .goal { text-align: center; padding-top: 8px; }
+  .goal .big { font-size: 36px; font-weight: 900; color: var(--accent); letter-spacing: .05em; line-height: 1.3; }
+  .goal .winner { font-size: 26px; font-weight: 800; overflow-wrap: anywhere; }
+  .goal .msg { margin: 4px 0 0; color: var(--text-sub); font-size: 15px; }
+  .ranking { list-style: none; margin: 0; padding: 0; }
+  .rank { display: grid; grid-template-columns: 40px 1fr auto; gap: 8px; align-items: center; padding: 8px 6px; }
+  .rank + .rank { border-top: 1px dashed var(--line); }
+  .rank .pos { font-weight: 800; text-align: center; }
+  .rank .rn { overflow-wrap: anywhere; }
+  .rank .sc { font-family: var(--font-num); font-size: 24px; font-weight: 800; }
+  .rank.first { background: var(--accent-soft); border-radius: 10px; }
+  .rank.out { color: var(--out); }
 </style>
 </head>
 <body>
 
 <!-- 準備画面（設計書 4-1） -->
 <main id="screen-setup" class="screen is-active" aria-labelledby="setup-title">
-  <h1 id="setup-title">もるっくん</h1>
+  <header class="app-head">
+    <svg width="36" height="36" viewBox="0 0 34 34" aria-hidden="true">
+      <path d="M9 9 L25 5 V29 H9 Z" fill="#F3D9B1" stroke="#B84E0B" stroke-width="2.5" stroke-linejoin="round"/>
+      <text x="17" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#4A2F1B">12</text>
+    </svg>
+    <div>
+      <h1 id="setup-title">もるっくん</h1>
+      <p class="sub">モルックの点数を、みんなでかんたん記録</p>
+    </div>
+  </header>
 
   <section class="panel" aria-labelledby="rules-title">
-    <h2 id="rules-title">ルール</h2>
-    <p class="placeholder">ゴールの点数・こえたときの点数・0点がつづいたらおしまい・フォルトの扱い（M2で実装）</p>
+    <h2 id="rules-title">📏 ルール</h2>
+
+    <div class="field">
+      <label class="field-label" for="target">ゴールの点数</label>
+      <span class="field-ctrl">
+        <input id="target" class="num" autocomplete="off" type="number" inputmode="numeric" min="10" max="200" step="1">
+        <span class="unit">点</span>
+      </span>
+    </div>
+
+    <div class="field">
+      <span class="field-label" id="reset-label">こえたら</span>
+      <span class="field-ctrl">
+        <span class="seg" role="group" aria-labelledby="reset-label">
+          <button type="button" data-reset-mode="half">半分（<span id="half-value">25</span>点）</button>
+          <button type="button" data-reset-mode="custom">自分で決める</button>
+        </span>
+      </span>
+    </div>
+    <div class="field" id="reset-custom-field">
+      <label class="field-label" for="reset-value">こえたら もどる点数</label>
+      <span class="field-ctrl">
+        <input id="reset-value" class="num" autocomplete="off" type="number" inputmode="numeric" min="0" step="1">
+        <span class="unit">点</span>
+      </span>
+    </div>
+
+    <div class="field">
+      <span class="field-label" id="miss-label">0点が つづいたら おしまい</span>
+      <span class="field-ctrl">
+        <input id="miss-limit" class="num small" autocomplete="off" type="number" inputmode="numeric" min="1" max="5" step="1" aria-label="おしまいになる回数">
+        <span class="unit">回</span>
+        <button type="button" class="switch" id="miss-enabled" role="switch" aria-labelledby="miss-label"></button>
+      </span>
+    </div>
+
+    <div class="field">
+      <span class="field-label" id="fault-label">フォルトも 0点に かぞえる</span>
+      <span class="field-ctrl">
+        <button type="button" class="switch" id="fault-counts" role="switch" aria-labelledby="fault-label"></button>
+      </span>
+    </div>
+
+    <p class="summary" id="rule-summary" aria-live="polite"></p>
+    <button type="button" class="link-btn" id="reset-rules">いつものルールにもどす</button>
   </section>
 
   <section class="panel" aria-labelledby="players-title">
-    <h2 id="players-title">あそぶ人（投げる順）</h2>
-    <p class="placeholder">名前の入力・並べかえ（M2で実装）</p>
+    <h2 id="players-title">🙋 あそぶ人（投げる順）</h2>
+    <ol class="players" id="player-list"></ol>
+    <div class="btn-row">
+      <button type="button" id="add-player">＋ 人をふやす</button>
+      <button type="button" id="shuffle-players">🔀 順番をまぜる</button>
+    </div>
   </section>
 
-  <button type="button" class="primary" id="start-button" disabled>はじめる！</button>
+  <ul class="errors" id="setup-errors" aria-live="polite"></ul>
+  <button type="button" class="primary" id="start-button">はじめる！</button>
 
   <footer class="site-footer">
     <p>もるっくんは、個人がつくった非公式のアプリです。</p>
@@ -121,14 +388,35 @@
 
 <!-- 試合画面（設計書 4-2） -->
 <main id="screen-game" class="screen" aria-label="試合">
-  <section class="panel" aria-label="手番"><p class="placeholder">手番表示（M2で実装）</p></section>
-  <section class="panel" aria-label="スコアボード"><p class="placeholder">スコアボード（M2で実装）</p></section>
-  <section class="panel" aria-label="得点入力"><p class="placeholder">入力パッド（M2で実装）</p></section>
+  <section class="turn" aria-live="polite">
+    <span class="round" id="round"></span>
+    <div class="who" id="who"></div>
+    <div class="left" id="left"></div>
+    <div class="warn" id="warn" hidden>⚠ つぎ0点だと おしまい。がんばって！</div>
+  </section>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <ol class="board" id="board" aria-label="みんなの点数"></ol>
+  <section class="pad" id="pad" aria-label="点数を入れる"></section>
 </main>
 
 <!-- 結果画面（設計書 4-4） -->
-<main id="screen-result" class="screen" aria-label="結果">
-  <section class="panel"><p class="placeholder">勝者・順位（M3で実装）</p></section>
+<main id="screen-result" class="screen" aria-labelledby="goal-title">
+  <section class="goal">
+    <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true">
+      <path d="M20 10 H52 V28 A16 16 0 0 1 20 28 Z" fill="#E0A100" stroke="#8A5A00" stroke-width="2.5"/>
+      <path d="M20 14 H10 A10 10 0 0 0 22 32 M52 14 H62 A10 10 0 0 1 50 32" fill="none" stroke="#8A5A00" stroke-width="2.5"/>
+      <rect x="32" y="44" width="8" height="10" fill="#C9A272" stroke="#8A5A00" stroke-width="2"/>
+      <rect x="22" y="54" width="28" height="8" rx="2" fill="#B84E0B" stroke="#8A3A08" stroke-width="2"/>
+    </svg>
+    <h1 class="big" id="goal-title"></h1>
+    <div class="winner" id="winner"></div>
+    <p class="msg" id="goal-msg"></p>
+  </section>
+  <section class="panel" aria-labelledby="ranking-title">
+    <h2 id="ranking-title">🏅 けっか</h2>
+    <ol class="ranking" id="ranking"></ol>
+  </section>
+  <button type="button" class="primary" id="back-to-setup">はじめの画面へ</button>
 </main>
 
 <script>
@@ -266,20 +554,386 @@ const MolkkyLogic = (() => {
     };
   }
 
-  return Object.freeze({ DEFAULT_SETTINGS, LIMITS, resetPoint, validateSetup, applyThrow, computeState });
+  // 結果画面の順位: 勝者 ＞ 残り点の高い順（同点は同じ順位） ＞ 失格者（後まで残った人が上）。失格者の rank は null
+  function ranking(state) {
+    const outOrder = new Map();
+    for (const h of state.history) if (h.result === "OUT") outOrder.set(h.playerId, h.index);
+    const winner = state.players.filter((p) => p.id === state.winnerId);
+    const alive = state.players
+      .filter((p) => p.id !== state.winnerId && !p.out)
+      .sort((a, b) => b.score - a.score);
+    const out = state.players
+      .filter((p) => p.out)
+      .sort((a, b) => outOrder.get(b.id) - outOrder.get(a.id));
+
+    const rows = [];
+    for (const p of winner) rows.push({ ...p, rank: 1, winner: true });
+    for (const [i, p] of alive.entries()) {
+      const prev = rows[rows.length - 1];
+      const tied = i > 0 && prev.score === p.score;
+      rows.push({ ...p, rank: tied ? prev.rank : rows.length + 1, winner: false });
+    }
+    for (const p of out) rows.push({ ...p, rank: null, winner: false });
+    return rows;
+  }
+
+  return Object.freeze({ DEFAULT_SETTINGS, LIMITS, resetPoint, validateSetup, applyThrow, computeState, ranking });
 })();
 // ==== LOGIC END ====
 
-// ---- 画面 ----
+// ==== 画面 ====
+// 画面は computeState の結果だけを見て描き直す。名前などの入力値は textContent で表示する（innerHTML に入れない）。
+const L = MolkkyLogic;
+const $ = (id) => document.getElementById(id);
+
+// 要素を作る小さな関数。子に文字列を渡すとテキストとして追加される（HTMLとして解釈しない）
+function h(tag, props, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat()) {
+    if (c == null || c === false) continue;
+    el.append(c instanceof Node ? c : String(c));
+  }
+  return el;
+}
+
 const SCREENS = ["setup", "game", "result"];
 
 function showScreen(name) {
   if (!SCREENS.includes(name)) throw new Error(`unknown screen: ${name}`);
   for (const s of SCREENS) {
-    document.getElementById(`screen-${s}`).classList.toggle("is-active", s === name);
+    $(`screen-${s}`).classList.toggle("is-active", s === name);
   }
   window.scrollTo(0, 0);
 }
+
+const app = {
+  setup: {
+    settings: { ...L.DEFAULT_SETTINGS },
+    players: [],             // { key, name }  key は並べかえ用の一時的な番号
+  },
+  game: null,                // 保存データと同じ形（設計書 5-1）
+  padStep: "choose",         // "choose" | "one" | "many"
+  toastTimer: 0,
+};
+let playerKey = 0;
+const newPlayer = (name = "") => ({ key: ++playerKey, name });
+const defaultName = (i) => `プレイヤー${i + 1}`;
+
+// ---- 準備画面 ----
+const numOrNaN = (v) => (String(v).trim() === "" ? NaN : Number(v));
+
+function readSettingsFromForm() {
+  const s = app.setup.settings;
+  s.target = numOrNaN($("target").value);
+  s.resetValue = numOrNaN($("reset-value").value);
+  s.missLimit = numOrNaN($("miss-limit").value);
+}
+
+function writeSettingsToForm() {
+  const s = app.setup.settings;
+  $("target").value = s.target;
+  $("reset-value").value = Number.isInteger(s.resetValue) ? s.resetValue : "";
+  $("miss-limit").value = s.missLimit;
+  refreshSetup();
+}
+
+function ruleSummary(s) {
+  const reset = L.resetPoint(s);
+  const parts = [`${s.target}点ぴったりでゴール`, `こえたら${reset}点にもどる`];
+  parts.push(s.missLimitEnabled
+    ? `${s.missLimit}回つづけて0点でおしまい${s.faultCountsAsMiss ? "（フォルトもふくむ）" : ""}`
+    : "0点がつづいても おしまいにならない");
+  return parts.join(" ／ ");
+}
+
+// 入力のたびに、表示（半分の点数・切りかえ・確認文・エラー・開始ボタン）を整える
+function refreshSetup() {
+  const s = app.setup.settings;
+  const half = Number.isInteger(s.target) ? Math.floor(s.target / 2) : "?";
+  $("half-value").textContent = half;
+  for (const b of document.querySelectorAll("[data-reset-mode]")) {
+    b.setAttribute("aria-pressed", String(b.dataset.resetMode === s.resetMode));
+  }
+  $("reset-custom-field").hidden = s.resetMode !== "custom";
+  $("miss-enabled").setAttribute("aria-checked", String(s.missLimitEnabled));
+  $("miss-limit").disabled = !s.missLimitEnabled;
+  $("fault-counts").setAttribute("aria-checked", String(s.faultCountsAsMiss));
+
+  const errors = L.validateSetup(s, app.setup.players.length);
+  $("rule-summary").textContent = errors.length && L.validateSetup(s, 2).length
+    ? "ルールの数字を たしかめてください"
+    : ruleSummary(s);
+  $("setup-errors").replaceChildren(...errors.map((e) => h("li", null, e)));
+  $("start-button").disabled = errors.length > 0;
+}
+
+function renderPlayers() {
+  const list = app.setup.players;
+  $("player-list").replaceChildren(...list.map((p, i) => h("li", { class: "player" },
+    h("span", { class: "badge", "aria-hidden": "true" }, i + 1),
+    h("input", {
+      class: "name-input", type: "text", maxlength: "20", autocomplete: "off", value: p.name,
+      placeholder: defaultName(i), "aria-label": `${i + 1}ばんめに投げる人の名前`,
+      "data-key": p.key,
+      oninput: (e) => { p.name = e.target.value; },
+    }),
+    h("button", {
+      type: "button", class: "mini", "aria-label": `${i + 1}ばんめの人を上へ`, disabled: i === 0,
+      onclick: () => movePlayer(i, -1),
+    }, "▲"),
+    h("button", {
+      type: "button", class: "mini", "aria-label": `${i + 1}ばんめの人を下へ`, disabled: i === list.length - 1,
+      onclick: () => movePlayer(i, 1),
+    }, "▼"),
+    h("button", {
+      type: "button", class: "mini", "aria-label": `${i + 1}ばんめの人をけす`,
+      disabled: list.length <= L.LIMITS.playersMin,
+      onclick: () => { list.splice(i, 1); renderPlayers(); },
+    }, "✕"),
+  )));
+  $("add-player").disabled = list.length >= L.LIMITS.playersMax;
+  refreshSetup();
+}
+
+function movePlayer(i, d) {
+  const list = app.setup.players;
+  [list[i], list[i + d]] = [list[i + d], list[i]];
+  renderPlayers();
+  $("player-list").children[i + d].querySelectorAll("button")[d < 0 ? 0 : 1].focus();
+}
+
+function shufflePlayers() {
+  const list = app.setup.players;
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [list[i], list[j]] = [list[j], list[i]];
+  }
+  renderPlayers();
+}
+
+function startGame() {
+  readSettingsFromForm();
+  const s = { ...app.setup.settings };
+  if (L.validateSetup(s, app.setup.players.length).length) return;
+  if (s.resetMode === "half") s.resetValue = L.resetPoint(s);
+  app.game = {
+    version: 1,
+    settings: s,
+    players: app.setup.players.map((p, i) => ({ id: `p${i + 1}`, name: p.name.trim() || defaultName(i) })),
+    throws: [],
+    startedAt: new Date().toISOString(),
+  };
+  app.padStep = "choose";
+  renderGame();
+  showScreen("game");
+}
+
+function initSetup() {
+  app.setup.players = [newPlayer(), newPlayer()];
+  for (const id of ["target", "reset-value", "miss-limit"]) {
+    $(id).addEventListener("input", () => { readSettingsFromForm(); refreshSetup(); });
+  }
+  for (const b of document.querySelectorAll("[data-reset-mode]")) {
+    b.addEventListener("click", () => {
+      const s = app.setup.settings;
+      s.resetMode = b.dataset.resetMode;
+      // 「自分で決める」に切りかえたとき、空なら今の半分の点数を入れておく
+      if (s.resetMode === "custom" && !Number.isInteger(s.resetValue) && Number.isInteger(s.target)) {
+        s.resetValue = Math.floor(s.target / 2);
+        $("reset-value").value = s.resetValue;
+      }
+      refreshSetup();
+    });
+  }
+  $("miss-enabled").addEventListener("click", () => {
+    app.setup.settings.missLimitEnabled = !app.setup.settings.missLimitEnabled;
+    refreshSetup();
+  });
+  $("fault-counts").addEventListener("click", () => {
+    app.setup.settings.faultCountsAsMiss = !app.setup.settings.faultCountsAsMiss;
+    refreshSetup();
+  });
+  $("reset-rules").addEventListener("click", () => {
+    app.setup.settings = { ...L.DEFAULT_SETTINGS };
+    writeSettingsToForm();
+  });
+  $("add-player").addEventListener("click", () => {
+    app.setup.players.push(newPlayer());
+    renderPlayers();
+    const inputs = $("player-list").querySelectorAll("input");
+    inputs[inputs.length - 1].focus();
+  });
+  $("shuffle-players").addEventListener("click", shufflePlayers);
+  $("start-button").addEventListener("click", startGame);
+  writeSettingsToForm();
+  renderPlayers();
+}
+
+// ---- 試合画面 ----
+function lastThrowLabel(entry) {
+  if (!entry) return "";
+  switch (entry.result) {
+    case "ADD": return `+${entry.points}`;
+    case "OVER": return "こえた↩︎";
+    case "MISS": return entry.fault ? "フォルト" : "0点";
+    case "FAULT": return "フォルト";
+    case "OUT": return "おしまい";
+    case "WIN": return "ゴール";
+    default: return "";
+  }
+}
+
+function missDots(p, s) {
+  if (s.missLimitEnabled) {
+    return h("span", { class: "dots", "aria-label": `0点 ${p.misses}回つづけて` },
+      "●".repeat(Math.min(p.misses, s.missLimit)) + "○".repeat(Math.max(s.missLimit - p.misses, 0)));
+  }
+  return p.misses > 0 ? h("span", { class: "dots" }, `0点×${p.misses}`) : null;
+}
+
+function renderGame() {
+  const game = app.game;
+  const s = game.settings;
+  const st = L.computeState(game);
+  if (st.finished) {
+    renderResult(st);
+    showScreen("result");
+    return;
+  }
+  const cur = st.players.find((p) => p.id === st.currentPlayerId);
+
+  $("round").textContent = `${st.round}まわりめ`;
+  $("who").textContent = `${cur.name} さんの番`;
+  $("left").replaceChildren("あと ", h("b", null, cur.remaining), " 点でゴール");
+  $("warn").hidden = !cur.atRisk;
+
+  const lastOf = new Map();
+  for (const e of st.history) lastOf.set(e.playerId, e);
+  $("board").replaceChildren(...st.players.map((p) => {
+    const now = p.id === st.currentPlayerId;
+    return h("li", { class: `p-row${now ? " now" : ""}${p.out ? " out" : ""}`, "aria-current": now ? "true" : null },
+      h("span", { class: "mark", "aria-hidden": "true" }, now ? "▶" : ""),
+      h("div", null,
+        h("div", { class: "nm" }, p.name),
+        h("div", { class: "meta" },
+          p.out ? h("span", { class: "tag" }, "おしまい") : `あと ${p.remaining}点`,
+          p.out ? null : missDots(p, s)),
+      ),
+      h("div", { class: "score", "aria-label": `${p.score}点` }, p.score),
+      h("div", { class: "last" }, lastThrowLabel(lastOf.get(p.id))),
+    );
+  }));
+  const nowRow = $("board").querySelector(".now");
+  if (nowRow) nowRow.scrollIntoView({ block: "nearest" });
+
+  renderPad();
+}
+
+// 入力パッド（質問式）: ステップ1「どうだった？」→ ステップ2「番号」または「本数」
+function renderPad() {
+  const step = app.padStep;
+  const go = (next) => () => { app.padStep = next; renderPad(); focusPad(); };
+  let items;
+  if (step === "one") {
+    items = [
+      h("div", { class: "step-head" },
+        h("button", { type: "button", class: "back", onclick: go("choose") }, "← もどる"),
+        "たおれたピンの番号は？"),
+      ...Array.from({ length: 12 }, (_, i) => h("button", {
+        type: "button", class: "pin", "aria-label": `${i + 1}番のピン（${i + 1}点）`,
+        onclick: () => recordThrow(i + 1, false),
+      }, i + 1)),
+    ];
+  } else if (step === "many") {
+    items = [
+      h("div", { class: "step-head" },
+        h("button", { type: "button", class: "back", onclick: go("choose") }, "← もどる"),
+        "たおれた本数は？"),
+      ...Array.from({ length: 11 }, (_, i) => h("button", {
+        type: "button", class: "count", "aria-label": `${i + 2}本（${i + 2}点）`,
+        onclick: () => recordThrow(i + 2, false),
+      }, h("b", null, i + 2), h("small", null, "本"))),
+    ];
+  } else {
+    items = [
+      h("div", { class: "pad-q" }, "どうだった？"),
+      h("button", { type: "button", class: "choice one", onclick: go("one") }, "1本だけ", h("small", null, "たおれた")),
+      h("button", { type: "button", class: "choice many", onclick: go("many") }, "2本以上", h("small", null, "たおれた")),
+      h("button", { type: "button", class: "choice zero", onclick: () => recordThrow(0, false) }, "0点", h("small", null, "たおれなかった")),
+      h("button", { type: "button", class: "choice fault", onclick: () => recordThrow(0, true) }, "フォルト", h("small", null, "ルールいはん")),
+    ];
+  }
+  // ひとつもどす・きろく（M3）、メニュー（M4）はあとで実装
+  items.push(h("div", { class: "tools" },
+    h("button", { type: "button", disabled: true }, "↩︎ ひとつもどす"),
+    h("button", { type: "button", disabled: true }, "📋 きろく"),
+    h("button", { type: "button", disabled: true }, "☰ メニュー"),
+  ));
+  $("pad").replaceChildren(...items);
+}
+
+function focusPad() {
+  const first = $("pad").querySelector("button:not([disabled])");
+  if (first) first.focus({ preventScroll: true });
+}
+
+function recordThrow(points, fault) {
+  const game = app.game;
+  const before = L.computeState(game);
+  if (before.finished) return;
+  game.throws.push({ playerId: before.currentPlayerId, points, fault, at: new Date().toISOString() });
+  app.padStep = "choose";
+  const st = L.computeState(game);
+  showToast(st.last, game);
+  renderGame();
+}
+
+function showToast(entry, game) {
+  const name = game.players.find((p) => p.id === entry.playerId).name;
+  let text, kind = "";
+  switch (entry.result) {
+    case "ADD": text = `+${entry.points} → ${entry.after}点`; break;
+    case "OVER": text = `こえちゃった！ ${entry.before + entry.points} → ${entry.after}点にもどるよ`; kind = "over"; break;
+    case "MISS":
+      text = `${entry.fault ? "フォルトで 0点" : "ざんねん、0点"}${entry.misses >= 2 ? `（${entry.misses}回つづけて）` : ""}`;
+      kind = "miss"; break;
+    case "FAULT": text = "フォルトで 0点"; kind = "miss"; break;
+    case "OUT": text = `${name} さんは ここまで。おつかれさま！`; kind = "out"; break;
+    default: return;   // WIN は結果画面で知らせる
+  }
+  const el = $("toast");
+  el.textContent = text;
+  el.className = `toast show ${kind}`;
+  clearTimeout(app.toastTimer);
+  app.toastTimer = setTimeout(() => { el.className = "toast"; }, 1200);
+}
+
+// ---- 結果画面（M2 は勝者と順位のみ。再戦・取り消しは M3） ----
+function renderResult(st) {
+  const s = app.game.settings;
+  const winner = st.players.find((p) => p.id === st.winnerId);
+  const byGoal = st.last && st.last.result === "WIN";
+  $("goal-title").textContent = byGoal ? "ゴール！" : "やったね！";
+  $("winner").textContent = winner ? `${winner.name} さん` : "";
+  $("goal-msg").textContent = byGoal
+    ? `おめでとう！ ${st.round}まわりめで ${s.target}点ぴったり`
+    : "さいごまで のこったので かち！ おめでとう！";
+  $("ranking").replaceChildren(...L.ranking(st).map((r) => h("li", { class: `rank${r.winner ? " first" : ""}${r.out ? " out" : ""}` },
+    h("span", { class: "pos" }, r.winner ? "🥇" : r.rank ?? "—"),
+    h("span", { class: "rn" }, r.out ? `${r.name}（おしまい）` : r.name),
+    h("span", { class: "sc" }, r.score),
+  )));
+}
+
+$("back-to-setup").addEventListener("click", () => showScreen("setup"));
+
+initSetup();
 </script>
 </body>
 </html>
