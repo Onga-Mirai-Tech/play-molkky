@@ -213,6 +213,26 @@ test("順位: 残り1人で終わったときは、その人が1位", () => {
   assert.deepEqual(L.ranking(state).map((r) => [r.id, r.rank]), [["p3", 1], ["p2", null], ["p1", null]]);
 });
 
+test("再戦の投げる順: そのまま／勝った人をさいごに", () => {
+  const players = [{ id: "p1" }, { id: "p2" }, { id: "p3" }];
+  assert.deepEqual(L.rematchOrder(players, "p1", "same").map((p) => p.id), ["p1", "p2", "p3"]);
+  assert.deepEqual(L.rematchOrder(players, "p1", "winnerLast").map((p) => p.id), ["p2", "p3", "p1"]);
+  assert.deepEqual(L.rematchOrder(players, "p3", "winnerLast").map((p) => p.id), ["p1", "p2", "p3"]);
+  assert.deepEqual(L.rematchOrder(players, null, "winnerLast").map((p) => p.id), ["p1", "p2", "p3"]);
+  assert.deepEqual(players.map((p) => p.id), ["p1", "p2", "p3"], "元の配列は変えない");
+});
+
+test("1投戻す: 何回でも戻せて、毎回はじめから計算し直した状態と一致する", () => {
+  // p1: 12,12,12,9,8（53で超過→25） ／ p2: 1,0,0,1,2（ミス2のあと得点でリセット）
+  const inputs = [12, 1, 12, 0, 12, 0, 9, 1, 8, 2];
+  const { game } = play(inputs);
+  for (let n = inputs.length; n >= 0; n--) {
+    const undone = L.computeState({ ...game, throws: game.throws.slice(0, n) });
+    const fresh = play(inputs.slice(0, n)).state;
+    assert.deepEqual(undone, fresh);
+  }
+});
+
 test("T-14（ロジック部分）: 準備画面の入力チェック", () => {
   const ok = { ...L.DEFAULT_SETTINGS };
   assert.deepEqual(L.validateSetup(ok, 2), []);

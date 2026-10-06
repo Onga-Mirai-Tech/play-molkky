@@ -303,6 +303,52 @@
   .rank .sc { font-family: var(--font-num); font-size: 24px; font-weight: 800; }
   .rank.first { background: var(--accent-soft); border-radius: 10px; }
   .rank.out { color: var(--out); }
+
+  .order-pick { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; font-size: 14px; font-weight: 700; }
+  .result-actions { display: flex; flex-direction: column; gap: 10px; }
+  .result-actions .btn-row { margin-top: 0; }
+
+  /* ===== きろく（公式スコアシート風） ===== */
+  dialog.sheet {
+    width: min(560px, 100vw); max-width: 100vw; max-height: 100dvh; height: 100dvh;
+    margin: 0 auto; padding: 0; border: 0; background: var(--bg); color: var(--text);
+  }
+  dialog.sheet[open] { display: flex; flex-direction: column; }
+  dialog.sheet::backdrop { background: rgba(74, 47, 27, .35); }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 10px 16px; background: var(--surface); border-bottom: 2px solid var(--line);
+  }
+  .sheet-head h2 { margin: 0; }
+  .sheet-head button { min-height: 48px; min-width: 0; padding: 0 16px; font-weight: 700; background: #FFFFFF; }
+  .sheet-body { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+  .sheet-empty { color: var(--text-sub); text-align: center; margin: 24px 0; }
+  table.score-sheet { border-collapse: separate; border-spacing: 0; background: #FFFFFF; font-size: 14px; }
+  .score-sheet th, .score-sheet td {
+    border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 4px 6px; text-align: center; min-width: 4.2em;
+  }
+  .score-sheet thead th {
+    position: sticky; top: 0; z-index: 1; background: var(--surface);
+    font-size: 13px; max-width: 6em; overflow-wrap: anywhere; line-height: 1.25;
+  }
+  .score-sheet th[scope="row"], .score-sheet thead th:first-child {
+    position: sticky; left: 0; background: var(--surface); min-width: 3.6em; white-space: nowrap; font-family: var(--font-num);
+  }
+  .score-sheet thead th:first-child { z-index: 2; font-family: var(--font); }
+  .score-sheet td .pt { display: block; font-weight: 800; font-family: var(--font-num); }
+  .score-sheet td .sum { display: block; font-size: 11px; color: var(--text-sub); }
+  .score-sheet td.over { background: #FFF1DE; }
+  .score-sheet td.over .pt { color: var(--accent); }
+  .score-sheet td.miss .pt { color: var(--miss); }
+  .score-sheet td.fault .pt { color: var(--fault); }
+  .score-sheet td.out { background: #F4EEE7; }
+  .score-sheet td.out .pt { color: var(--out); }
+  .score-sheet td.win { background: var(--accent-soft); }
+  .score-sheet td.win .pt { color: var(--win); }
+  .score-sheet tfoot td { font-weight: 800; background: var(--surface); }
+  .legend { margin: 10px 0 0; font-size: 13px; color: var(--text-sub); line-height: 1.8; }
+  .legend b { font-family: var(--font-num); }
 </style>
 </head>
 <body>
@@ -416,8 +462,33 @@
     <h2 id="ranking-title">🏅 けっか</h2>
     <ol class="ranking" id="ranking"></ol>
   </section>
-  <button type="button" class="primary" id="back-to-setup">はじめの画面へ</button>
+  <section class="result-actions">
+    <div class="order-pick">
+      <span id="order-label">つぎの 投げる順</span>
+      <span class="seg" role="group" aria-labelledby="order-label">
+        <button type="button" data-rematch-order="same">そのまま</button>
+        <button type="button" data-rematch-order="winnerLast">勝った人を さいごに</button>
+      </span>
+    </div>
+    <button type="button" class="primary" id="rematch">同じメンバーで もう一回</button>
+    <div class="btn-row">
+      <button type="button" id="back-to-setup">はじめの画面へ</button>
+      <button type="button" id="result-history">📋 きろくを見る</button>
+    </div>
+    <div class="btn-row">
+      <button type="button" id="result-undo">↩︎ さっきの1投を とりけす</button>
+    </div>
+  </section>
 </main>
+
+<!-- きろく（設計書 4-3）: 行＝まわり、列＝あそぶ人 -->
+<dialog class="sheet" id="history-dialog" aria-labelledby="history-title">
+  <div class="sheet-head">
+    <h2 id="history-title">📋 きろく</h2>
+    <button type="button" id="history-close">とじる</button>
+  </div>
+  <div class="sheet-body" id="history-body"></div>
+</dialog>
 
 <script>
 "use strict";
@@ -577,7 +648,19 @@ const MolkkyLogic = (() => {
     return rows;
   }
 
-  return Object.freeze({ DEFAULT_SETTINGS, LIMITS, resetPoint, validateSetup, applyThrow, computeState, ranking });
+  // 再戦の投げる順。"same": そのまま ／ "winnerLast": 前回勝った人を最後にする
+  function rematchOrder(players, winnerId, mode) {
+    const list = players.slice();
+    if (mode === "winnerLast") {
+      const i = list.findIndex((p) => p.id === winnerId);
+      if (i !== -1) list.push(...list.splice(i, 1));
+    }
+    return list;
+  }
+
+  return Object.freeze({
+    DEFAULT_SETTINGS, LIMITS, resetPoint, validateSetup, applyThrow, computeState, ranking, rematchOrder,
+  });
 })();
 // ==== LOGIC END ====
 
@@ -620,6 +703,7 @@ const app = {
   game: null,                // 保存データと同じ形（設計書 5-1）
   padStep: "choose",         // "choose" | "one" | "many"
   toastTimer: 0,
+  rematchOrder: "same",      // 再戦の投げる順 "same" | "winnerLast"
 };
 let playerKey = 0;
 const newPlayer = (name = "") => ({ key: ++playerKey, name });
@@ -869,10 +953,11 @@ function renderPad() {
       h("button", { type: "button", class: "choice fault", onclick: () => recordThrow(0, true) }, "フォルト", h("small", null, "ルールいはん")),
     ];
   }
-  // ひとつもどす・きろく（M3）、メニュー（M4）はあとで実装
+  // メニュー（ゲームを終了・リセット）は M4 で実装
+  const noThrows = app.game.throws.length === 0;
   items.push(h("div", { class: "tools" },
-    h("button", { type: "button", disabled: true }, "↩︎ ひとつもどす"),
-    h("button", { type: "button", disabled: true }, "📋 きろく"),
+    h("button", { type: "button", disabled: noThrows, onclick: undoThrow }, "↩︎ ひとつもどす"),
+    h("button", { type: "button", onclick: openHistory }, "📋 きろく"),
     h("button", { type: "button", disabled: true }, "☰ メニュー"),
   ));
   $("pad").replaceChildren(...items);
@@ -894,6 +979,27 @@ function recordThrow(points, fault) {
   renderGame();
 }
 
+// ひとつもどす: 記録の末尾を1つ消して計算し直すだけ（勝ったあとでも戻せる）
+function undoThrow() {
+  const game = app.game;
+  const removed = game.throws.pop();
+  if (!removed) return;
+  app.padStep = "choose";
+  const name = game.players.find((p) => p.id === removed.playerId).name;
+  const what = removed.fault ? "フォルト" : `${removed.points}点`;
+  renderGame();
+  showScreen("game");
+  flashToast(`ひとつ もどしたよ（${name} さんの ${what}）`, "");
+}
+
+function flashToast(text, kind) {
+  const el = $("toast");
+  el.textContent = text;
+  el.className = `toast show ${kind}`;
+  clearTimeout(app.toastTimer);
+  app.toastTimer = setTimeout(() => { el.className = "toast"; }, 1200);
+}
+
 function showToast(entry, game) {
   const name = game.players.find((p) => p.id === entry.playerId).name;
   let text, kind = "";
@@ -907,15 +1013,61 @@ function showToast(entry, game) {
     case "OUT": text = `${name} さんは ここまで。おつかれさま！`; kind = "out"; break;
     default: return;   // WIN は結果画面で知らせる
   }
-  const el = $("toast");
-  el.textContent = text;
-  el.className = `toast show ${kind}`;
-  clearTimeout(app.toastTimer);
-  app.toastTimer = setTimeout(() => { el.className = "toast"; }, 1200);
+  flashToast(text, kind);
 }
 
-// ---- 結果画面（M2 は勝者と順位のみ。再戦・取り消しは M3） ----
+// ---- きろく（行＝まわり、列＝あそぶ人。各マスに「その投の点（合計）」） ----
+function sheetCell(e) {
+  if (!e) return h("td", null);
+  const marks = {
+    ADD: ["", `+${e.points}`],
+    OVER: ["over", `+${e.points}↩︎`],
+    MISS: e.fault ? ["fault", "F"] : ["miss", "●"],
+    FAULT: ["fault", "F"],
+    OUT: ["out", e.fault ? "F✕" : "●✕"],
+    WIN: ["win", `★+${e.points}`],
+  };
+  const [cls, pt] = marks[e.result];
+  return h("td", { class: cls || null }, h("span", { class: "pt" }, pt), h("span", { class: "sum" }, `(${e.after})`));
+}
+
+function openHistory() {
+  const st = L.computeState(app.game);
+  const body = $("history-body");
+  if (st.history.length === 0) {
+    body.replaceChildren(h("p", { class: "sheet-empty" }, "まだ きろくは ありません"));
+  } else {
+    const rounds = st.history[st.history.length - 1].round;
+    const cell = new Map(st.history.map((e) => [`${e.round}:${e.playerId}`, e]));
+    body.replaceChildren(
+      h("table", { class: "score-sheet" },
+        h("thead", null, h("tr", null,
+          h("th", { scope: "col" }, "まわり"),
+          ...st.players.map((p) => h("th", { scope: "col" }, p.name)))),
+        h("tbody", null, ...Array.from({ length: rounds }, (_, i) => h("tr", null,
+          h("th", { scope: "row" }, i + 1),
+          ...st.players.map((p) => sheetCell(cell.get(`${i + 1}:${p.id}`)))))),
+        h("tfoot", null, h("tr", null,
+          h("th", { scope: "row" }, "合計"),
+          ...st.players.map((p) => h("td", null, p.out ? "おしまい" : p.score)))),
+      ),
+      h("p", { class: "legend" },
+        h("b", null, "+8"), " たおした点数 ／ ", h("b", null, "(33)"), " その時の合計", h("br"),
+        h("b", null, "↩︎"), " こえて もどった ／ ", h("b", null, "●"), " 0点 ／ ", h("b", null, "F"), " フォルト ／ ",
+        h("b", null, "✕"), " おしまい ／ ", h("b", null, "★"), " ゴール"),
+    );
+  }
+  $("history-dialog").showModal();
+  body.scrollTop = body.scrollHeight;   // 新しいまわりが見えるように
+}
+
+$("history-close").addEventListener("click", () => $("history-dialog").close());
+
+// ---- 結果画面 ----
 function renderResult(st) {
+  for (const b of document.querySelectorAll("[data-rematch-order]")) {
+    b.setAttribute("aria-pressed", String(b.dataset.rematchOrder === app.rematchOrder));
+  }
   const s = app.game.settings;
   const winner = st.players.find((p) => p.id === st.winnerId);
   const byGoal = st.last && st.last.result === "WIN";
@@ -931,6 +1083,32 @@ function renderResult(st) {
   )));
 }
 
+// 再戦: 同じメンバー・同じルールで、投げる順だけ選んで始め直す
+function rematch() {
+  const prev = app.game;
+  const st = L.computeState(prev);
+  const order = L.rematchOrder(prev.players, st.winnerId, app.rematchOrder);
+  app.game = {
+    version: 1,
+    settings: { ...prev.settings },
+    players: order.map((p, i) => ({ id: `p${i + 1}`, name: p.name })),
+    throws: [],
+    startedAt: new Date().toISOString(),
+  };
+  app.padStep = "choose";
+  renderGame();
+  showScreen("game");
+}
+
+for (const b of document.querySelectorAll("[data-rematch-order]")) {
+  b.addEventListener("click", () => {
+    app.rematchOrder = b.dataset.rematchOrder;
+    renderResult(L.computeState(app.game));
+  });
+}
+$("rematch").addEventListener("click", rematch);
+$("result-undo").addEventListener("click", undoThrow);
+$("result-history").addEventListener("click", openHistory);
 $("back-to-setup").addEventListener("click", () => showScreen("setup"));
 
 initSetup();
