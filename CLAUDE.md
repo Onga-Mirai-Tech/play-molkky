@@ -1,11 +1,11 @@
-# モルック得点計算アプリ
+# もるっくん（モルックの点数けいさん）
 
 スマホ1台でモルックの全員の得点を記録・自動計算するWEBアプリ。
 
 - 公開URL: `https://play-molkky.onga-mirai-tech.com/`（Xサーバーのサブドメイン）
 - デプロイ: main への push で GitHub Actions が `dist/` を rsync 同期（Disaster Chronicle・遠賀町ナビと同じ方式）。接続情報は GitHub の secrets にのみ置き、ファイルに書かない
 
-- 設計の正: `docs/design.md`（ルール仕様・画面・データ・テストケースT-01〜T-14）
+- 設計の正: `docs/design.md`（ルール仕様・画面・データ・テストケースT-01〜T-16）
 - 作業手順: `docs/implementation-plan.md`（M0〜M5。各マイルストーンの完了条件つき）
 
 ## 制約（設計書 8-2）

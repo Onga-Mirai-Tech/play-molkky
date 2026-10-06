@@ -1,4 +1,4 @@
-# モルック得点計算アプリ
+# もるっくん（モルックの点数けいさん）
 
 https://play-molkky.onga-mirai-tech.com/
 

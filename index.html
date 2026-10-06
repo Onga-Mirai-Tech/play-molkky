@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="スマホ1台でモルックの全員の得点を記録・自動計算するWEBアプリ">
 <meta name="theme-color" content="#FBEBD3">
-<title>モルック 点数けいさん</title>
+<title>もるっくん｜モルックの点数けいさん</title>
 <style>
   /* モルックの木のピン（スキットル）をイメージした配色。docs/design-mockup.html と同じ値。
      コントラスト比は背景 --bg に対する値。暗い色・ダークモードは使わない。 */
@@ -92,13 +92,14 @@
     text-align: center;
   }
   .site-footer a { color: inherit; }
+  .site-footer p { margin: 0 0 4px; }
 </style>
 </head>
 <body>
 
 <!-- 準備画面（設計書 4-1） -->
 <main id="screen-setup" class="screen is-active" aria-labelledby="setup-title">
-  <h1 id="setup-title">モルック 点数けいさん</h1>
+  <h1 id="setup-title">もるっくん</h1>
 
   <section class="panel" aria-labelledby="rules-title">
     <h2 id="rules-title">ルール</h2>
@@ -113,6 +114,7 @@
   <button type="button" class="primary" id="start-button" disabled>はじめる！</button>
 
   <footer class="site-footer">
+    <p>もるっくんは、個人がつくった非公式のアプリです。</p>
     © Onga-Mirai-Tech ・ <a href="https://github.com/Onga-Mirai-Tech/play-molkky" rel="noopener">ソースコード（MIT License）</a>
   </footer>
 </main>

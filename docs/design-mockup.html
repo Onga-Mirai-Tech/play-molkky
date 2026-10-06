@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>デザイン案 - モルック点数けいさん</title>
+<title>デザイン案 - もるっくん</title>
 <style>
   /* ===== デザイントークン（index.html にもこのまま移す） ===== */
   :root {
@@ -168,6 +168,12 @@
   .pin.zero { border-color: var(--miss); color: var(--miss); }
   .pin.fault { border-color: var(--fault); color: var(--fault); }
   .pin small { font-size: 11px; font-weight: 700; }
+  /* 押し方のガイド。どのピンが倒れたかは選ばず、点数を1つ押すだけ */
+  .pad-hint {
+    grid-column: 1 / -1; text-align: center; font-size: 13px; color: var(--text-sub);
+    margin: -2px 0 -2px;
+  }
+  .pad-hint b { color: var(--text); }
   .tools { grid-column: 1 / -1; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
   .tools .btn { min-height: 44px; font-size: 13px; }
 
@@ -199,7 +205,7 @@
 </head>
 <body>
 <div class="doc">
-  <h1>デザイン案 v1 ― 木のぬくもり ×やさしい言葉</h1>
+  <h1>もるっくん デザイン案 v2 ― 木のぬくもり ×やさしい言葉</h1>
   <p class="lead">モルックの木のピン（スキットル）をイメージした、オレンジと茶色の配色。子どもからおじいちゃん・おばあちゃんまで迷わず使える言葉づかいにしています。</p>
 
   <div class="phones">
@@ -214,8 +220,8 @@
             <text x="17" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#4A2F1B">12</text>
           </svg>
           <div>
-            <div class="title">モルック 点数けいさん</div>
-            <div class="sub">みんなの点数を、かんたんに記録</div>
+            <div class="title">もるっくん</div>
+            <div class="sub">モルックの点数を、みんなでかんたん記録</div>
           </div>
         </div>
         <div class="body">
@@ -283,6 +289,7 @@
         </div>
 
         <div class="pad">
+          <div class="pad-hint"><b>1本だけ</b> → ピンの番号 ／ <b>2本以上</b> → たおれた本数</div>
           <span class="pin">1</span><span class="pin">2</span><span class="pin">3</span><span class="pin">4</span>
           <span class="pin">5</span><span class="pin">6</span><span class="pin">7</span><span class="pin">8</span>
           <span class="pin">9</span><span class="pin">10</span><span class="pin">11</span><span class="pin">12</span>
