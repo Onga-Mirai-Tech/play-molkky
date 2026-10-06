@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="もるっくん">
+  <!-- もるっくん: モルックの木のピン（スキットル）に顔をつけたキャラクター。
+       ホーム画面アイコン（icon-180.png）・カード画像（ogp.png）・アプリの見出しもこの絵を使う。
+       変えたら scripts/brand/generate.sh で PNG を作り直す。 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFB24D"/>
+      <stop offset="1" stop-color="#F07E1E"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="26" fill="url(#bg)"/>
+  <!-- 足もとの影 -->
+  <ellipse cx="61" cy="109" rx="27" ry="4.5" fill="#B4530C" opacity=".35"/>
+  <g transform="rotate(-7 60 66)">
+    <!-- ピンの胴（頭が斜めに切れている） -->
+    <path d="M35 31 L85 17 L85 103 Q85 109 79 109 L41 109 Q35 109 35 103 Z"
+          fill="#FCE6C2" stroke="#7A4A22" stroke-width="4" stroke-linejoin="round"/>
+    <!-- 斜めの切り口（番号が書いてある面） -->
+    <path d="M35 31 L85 17 L85 34 L35 48 Z" fill="#F2C98F" stroke="#7A4A22" stroke-width="4" stroke-linejoin="round"/>
+    <text x="60" y="32.5" transform="rotate(-15.6 60 32.5)" text-anchor="middle" dominant-baseline="central"
+          font-family="'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN', sans-serif"
+          font-size="14" font-weight="700" fill="#7A4A22">12</text>
+    <!-- 木目 -->
+    <path d="M44 52 Q47 76 44 101" fill="none" stroke="#EBC58E" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M77 50 Q74 74 77 101" fill="none" stroke="#EBC58E" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- 顔 -->
+    <ellipse cx="51" cy="67" rx="4.2" ry="5.6" fill="#4A2F1B"/>
+    <ellipse cx="70" cy="67" rx="4.2" ry="5.6" fill="#4A2F1B"/>
+    <circle cx="52.4" cy="65" r="1.5" fill="#FFFFFF"/>
+    <circle cx="71.4" cy="65" r="1.5" fill="#FFFFFF"/>
+    <ellipse cx="44" cy="79" rx="5.2" ry="3.4" fill="#F7957F" opacity=".85"/>
+    <ellipse cx="77" cy="79" rx="5.2" ry="3.4" fill="#F7957F" opacity=".85"/>
+    <path d="M53.5 78 Q60.5 86.5 67.5 78" fill="none" stroke="#4A2F1B" stroke-width="3.6" stroke-linecap="round"/>
+  </g>
+</svg>

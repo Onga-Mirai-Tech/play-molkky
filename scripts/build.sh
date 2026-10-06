@@ -10,6 +10,9 @@ cd "$(dirname "$0")/.."
 # 公開するファイル
 PUBLIC_FILES=(
   index.html
+  favicon.svg    # タブのアイコン・アプリの見出しの絵（もるっくん）
+  icon-180.png   # ホーム画面に追加したときのアイコン（scripts/brand/generate.sh で作る）
+  ogp.png        # リンクを貼ったときのカード画像（同上）
 )
 
 rm -rf dist

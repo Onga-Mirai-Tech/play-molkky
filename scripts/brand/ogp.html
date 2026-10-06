@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+  リンクを貼り付けたときに表示されるカード画像（OGP画像 / ogp.png, 1200x630）の元デザイン。
+  変更したら scripts/brand/generate.sh で作り直す。
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif;
+    color: #4A2F1B;
+    background:
+      repeating-linear-gradient(100deg, rgba(201,162,114,.14) 0 10px, transparent 10px 26px),
+      #FBEBD3;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card {
+    width: 1120px; height: 550px; position: relative;
+    background: #FFF8EE; border: 4px solid #E6CCA6; border-radius: 44px;
+    box-shadow: 0 18px 44px rgba(122, 74, 34, .18);
+    display: flex; align-items: center; gap: 52px; padding: 0 60px 56px 76px;
+  }
+  .mascot { width: 300px; height: 300px; flex: none; transform: rotate(-4deg); filter: drop-shadow(0 12px 20px rgba(180, 83, 12, .3)); }
+  .text { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  h1 { font-size: 112px; font-weight: 700; line-height: 1.05; letter-spacing: .02em; color: #B84E0B; white-space: nowrap; }
+  .sub { font-size: 40px; font-weight: 700; line-height: 1.45; }
+  .tags { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 4px; }
+  .tag {
+    font-size: 25px; font-weight: 700; white-space: nowrap;
+    background: #FFE2B3; border: 2px solid #F59A3C; border-radius: 999px; padding: 5px 18px;
+  }
+  .foot {
+    position: absolute; left: 0; right: 0; bottom: 26px; text-align: center;
+    font-size: 23px; color: #7A5537; letter-spacing: .02em;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img class="mascot" src="../../favicon.svg" alt="">
+    <div class="text">
+      <h1>もるっくん</h1>
+      <p class="sub">モルックの点数を、<br>みんなで かんたん記録</p>
+      <div class="tags">
+        <span class="tag">スマホ1台で</span>
+        <span class="tag">点数を自動けいさん</span>
+        <span class="tag">インストール不要</span>
+      </div>
+    </div>
+    <p class="foot">play-molkky.onga-mirai-tech.com ・ 個人がつくった非公式のアプリです</p>
+  </div>
+</body>
+</html>

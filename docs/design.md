@@ -239,7 +239,9 @@ function applyThrow(p, t, s) {   // p = あるプレイヤーの状態, t = { po
 | --- | --- | --- |
 | `index.html` | HTML・CSS・JavaScriptをすべて内包した本体 | 置く |
 | `server/.htaccess` | HTTPS・正規ホスト名への転送、セキュリティヘッダー、キャッシュ抑制 | 置く（`dist/.htaccess` として） |
-| `icon-180.png` | スマホのホーム画面に追加したときのアイコン | 置く（任意） |
+| `favicon.svg` | もるっくん（木のピンに顔をつけたキャラクター）。タブのアイコンとアプリの見出しに使う。下の2つの画像の元 | 置く |
+| `icon-180.png` | スマホのホーム画面に追加したときのアイコン（`scripts/brand/generate.sh` で作る） | 置く |
+| `ogp.png` | リンクを貼ったときのカード画像 1200×630（同上） | 置く |
 | `scripts/build.sh` | 公開ファイルだけを `dist/` に集める | 置かない |
 | `.github/workflows/deploy.yml` | テスト → `dist/` を rsync で同期（失敗時は別環境で再試行） | 置かない |
 | `tests/` `docs/` `README.md` `CLAUDE.md` | テスト・設計・手順 | 置かない |

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<!--
+  ホーム画面に追加したときのアイコン（icon-180.png）の元。512x512 で書き出してから縮小する。
+  iPhone は角を自動で丸めるので、背景は四角いまま全面に塗る（favicon.svg の角の外も同じ色で埋める）。
+  変更したら scripts/brand/generate.sh で作り直す。
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 512px; height: 512px; overflow: hidden; }
+  body { background: linear-gradient(180deg, #FFB24D 0%, #F07E1E 100%); }
+  img { display: block; width: 512px; height: 512px; }
+</style>
+</head>
+<body>
+  <img src="../../favicon.svg" alt="">
+</body>
+</html>

@@ -15,7 +15,7 @@ main へ push
         └─ deploy-retry … deploy が失敗したときだけ、別の実行環境（別の IP）でやり直す
 ```
 
-- サーバーに置かれるのは `dist/` の中身だけです（`index.html` / `.htaccess`）。`.git` や `docs/`、`tests/` などは公開されません。
+- サーバーに置かれるのは `dist/` の中身だけです（`index.html` / `favicon.svg` / `icon-180.png` / `ogp.png` / `.htaccess`）。`.git` や `docs/`、`tests/` などは公開されません。
 - 接続情報や鍵は **GitHub の Environment secrets にだけ**保存します。リポジトリは公開されているため、ファイルには絶対に書かないでください。
 - `DEPLOY_ENABLED` が `true` になるまで、main に push してもデプロイは実行されません（テストとビルドのみ）。
 - rsync は `--delete` で同期します。デプロイ先は**このサイト専用のディレクトリ**でなければなりません（`.well-known/` と `.user.ini` は消さずに残します）。

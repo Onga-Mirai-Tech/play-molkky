@@ -3,9 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="スマホ1台でモルックの全員の得点を記録・自動計算するWEBアプリ">
+<meta name="description" content="スマホ1台で、モルックのみんなの点数をかんたん記録。こえたら25点にもどる計算や、0点がつづいた回数も自動でけいさんします。インストール不要・無料。">
 <meta name="theme-color" content="#FBEBD3">
 <title>もるっくん｜モルックの点数けいさん</title>
+<link rel="canonical" href="https://play-molkky.onga-mirai-tech.com/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-title" content="もるっくん">
+<!-- リンクを貼ったときのカード（OGP）。画像は scripts/brand/generate.sh で作る -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="もるっくん">
+<meta property="og:title" content="もるっくん｜モルックの点数けいさん">
+<meta property="og:description" content="スマホ1台で、モルックのみんなの点数をかんたん記録。こえたら25点にもどる計算や、0点がつづいた回数も自動でけいさんします。">
+<meta property="og:url" content="https://play-molkky.onga-mirai-tech.com/">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="https://play-molkky.onga-mirai-tech.com/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="もるっくん モルックの点数を、みんなでかんたん記録">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   /* モルックの木のピン（スキットル）をイメージした配色。docs/design-mockup.html と同じ値。
      コントラスト比は背景 --bg に対する値。暗い色・ダークモードは使わない。 */
@@ -98,6 +114,7 @@
     border-bottom: 2px solid var(--line);
   }
   .app-head .sub { margin: 2px 0 0; font-size: 13px; color: var(--text-sub); }
+  .app-logo { flex: none; display: block; filter: drop-shadow(0 2px 3px rgba(180, 83, 12, .25)); }
 
   .field {
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
@@ -372,10 +389,7 @@
 <!-- 準備画面（設計書 4-1） -->
 <main id="screen-setup" class="screen is-active" aria-labelledby="setup-title">
   <header class="app-head">
-    <svg width="36" height="36" viewBox="0 0 34 34" aria-hidden="true">
-      <path d="M9 9 L25 5 V29 H9 Z" fill="#F3D9B1" stroke="#B84E0B" stroke-width="2.5" stroke-linejoin="round"/>
-      <text x="17" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#4A2F1B">12</text>
-    </svg>
+    <img class="app-logo" src="favicon.svg" width="48" height="48" alt="">
     <div>
       <h1 id="setup-title">もるっくん</h1>
       <p class="sub">モルックの点数を、みんなでかんたん記録</p>

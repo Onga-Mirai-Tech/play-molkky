@@ -29,7 +29,8 @@
 
 ## 公開物に含めないもの
 
-`scripts/build.sh` が `dist/` に集めたものだけが公開される: `index.html` と `server/.htaccess`（と任意で `icon-180.png`）。公開ファイルを足したら `scripts/build.sh` にも追記する。
+`scripts/build.sh` が `dist/` に集めたものだけが公開される: `index.html`・`favicon.svg`・`icon-180.png`・`ogp.png` と `server/.htaccess`。公開ファイルを足したら `scripts/build.sh` にも追記する。
 
+- アイコン・カード画像の絵は `favicon.svg` が元。変えたら `bash scripts/brand/generate.sh` で `icon-180.png` と `ogp.png` を作り直す
 - 外部への通信や読み込みを足すと、`server/.htaccess` の CSP（`connect-src 'none'` など）で本番だけ壊れる。足す場合は CSP も更新する
-- ドメインは `server/.htaccess`・`.github/workflows/deploy.yml`・`docs/` に書かれている。変えるときは `grep -rn play-molkky.onga-mirai-tech.com` で漏れなく置き換える
+- ドメインは `index.html`（canonical・OGP）・`scripts/brand/ogp.html`・`server/.htaccess`・`.github/workflows/deploy.yml`・`docs/` に書かれている。変えるときは `grep -rn play-molkky.onga-mirai-tech.com` で漏れなく置き換える
