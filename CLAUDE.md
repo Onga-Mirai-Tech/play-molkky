@@ -24,6 +24,7 @@
 
 - `docs/implementation-plan.md` のマイルストーン順に進める。**各マイルストーンの終わりで止まり、確認を取ってから次へ**
 - UIを変えたら、スマホ幅（375×812）で実際に開いてスクリーンショットで確認する
+- 保存・再開を確かめるときは http で開く（`.claude/launch.json` の `play-molkky`＝`python3 -m http.server 8765`）。ファイルを直接開くと `data:` 扱いになり localStorage が使えない
 - 設計を変更したら `docs/design.md` を更新し、判断ログに残す
 
 ## 公開物に含めないもの

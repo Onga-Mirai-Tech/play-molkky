@@ -347,6 +347,22 @@
   .score-sheet td.win { background: var(--accent-soft); }
   .score-sheet td.win .pt { color: var(--win); }
   .score-sheet tfoot td { font-weight: 800; background: var(--surface); }
+  /* ===== メニュー・確認 ===== */
+  dialog.card-dialog {
+    width: min(420px, calc(100vw - 32px)); padding: 16px; border: 2px solid var(--line); border-radius: 18px;
+    background: var(--bg); color: var(--text); box-shadow: 0 12px 32px rgba(74,47,27,.25);
+  }
+  dialog.card-dialog::backdrop { background: rgba(74, 47, 27, .35); }
+  dialog.card-dialog h2 { margin: 0 0 8px; }
+  .menu-rule { margin: 0 0 12px; padding: 8px 10px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
+  .menu-rule span { display: block; font-size: 12px; color: var(--text-sub); }
+  .menu-actions { display: flex; flex-direction: column; gap: 10px; }
+  .menu-actions button { min-height: var(--tap); width: 100%; font-weight: 700; font-size: 17px; background: #FFFFFF; }
+  .menu-actions button.danger { background: var(--fault); border-color: var(--fault); color: #FFFFFF; }
+  .menu-actions button.quiet { background: transparent; }
+  .confirm-message { margin: 4px 0 16px; font-size: 17px; font-weight: 700; line-height: 1.6; }
+  .confirm-message small { display: block; margin-top: 4px; font-size: 14px; font-weight: 400; color: var(--text-sub); }
+
   .legend { margin: 10px 0 0; font-size: 13px; color: var(--text-sub); line-height: 1.8; }
   .legend b { font-family: var(--font-num); }
 </style>
@@ -488,6 +504,26 @@
     <button type="button" id="history-close">とじる</button>
   </div>
   <div class="sheet-body" id="history-body"></div>
+</dialog>
+
+<!-- メニュー（試合中） -->
+<dialog class="card-dialog" id="menu-dialog" aria-labelledby="menu-title">
+  <h2 id="menu-title">☰ メニュー</h2>
+  <p class="menu-rule"><span>この試合のルール</span><b id="menu-rule"></b></p>
+  <div class="menu-actions">
+    <button type="button" id="menu-restart">🔄 はじめから やりなおす</button>
+    <button type="button" id="menu-quit">🏠 ゲームを やめる</button>
+    <button type="button" id="menu-close" class="quiet">とじる</button>
+  </div>
+</dialog>
+
+<!-- 確認（ゲームをやめる・やりなおす） -->
+<dialog class="card-dialog" id="confirm-dialog" aria-labelledby="confirm-message">
+  <p class="confirm-message" id="confirm-message"></p>
+  <div class="menu-actions">
+    <button type="button" id="confirm-ok" class="danger"></button>
+    <button type="button" id="confirm-cancel" class="quiet">やめておく</button>
+  </div>
 </dialog>
 
 <script>
@@ -658,8 +694,72 @@ const MolkkyLogic = (() => {
     return list;
   }
 
+  // ---- 保存データの読み込み（設計書 5-1）。壊れたデータ・形式違いは null を返して捨てる ----
+  const VERSION = 1;
+  const NAME_MAX = 20;
+  const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+
+  function cleanSettings(s) {
+    if (!isObj(s)) return null;
+    const out = {
+      target: s.target,
+      resetMode: s.resetMode,
+      resetValue: s.resetValue,
+      missLimitEnabled: s.missLimitEnabled,
+      missLimit: s.missLimit,
+      faultCountsAsMiss: s.faultCountsAsMiss,
+    };
+    if (typeof out.missLimitEnabled !== "boolean" || typeof out.faultCountsAsMiss !== "boolean") return null;
+    if (out.resetMode === "half") out.resetValue = Math.floor(out.target / 2);
+    return settingsOk(out) ? out : null;
+  }
+  const settingsOk = (s) => validateSetup(s, LIMITS.playersMin).length === 0;
+
+  // 進行中（または終わった直後）の試合
+  function restoreGame(data) {
+    try {
+      if (!isObj(data) || data.version !== VERSION) return null;
+      const settings = cleanSettings(data.settings);
+      if (!settings) return null;
+      const { players, throws } = data;
+      if (!Array.isArray(players) || players.length < LIMITS.playersMin || players.length > LIMITS.playersMax) return null;
+      const ids = new Set();
+      for (const p of players) {
+        if (!isObj(p) || typeof p.id !== "string" || typeof p.name !== "string" || ids.has(p.id)) return null;
+        ids.add(p.id);
+      }
+      if (!Array.isArray(throws)) return null;
+      for (const t of throws) {
+        if (!isObj(t) || typeof t.playerId !== "string" || typeof t.fault !== "boolean") return null;
+      }
+      const game = {
+        version: VERSION,
+        settings,
+        players: players.map((p) => ({ id: p.id, name: p.name.slice(0, NAME_MAX) })),
+        throws: throws.map((t) => ({ playerId: t.playerId, points: t.points, fault: t.fault, at: t.at })),
+        startedAt: typeof data.startedAt === "string" ? data.startedAt : null,
+      };
+      computeState(game);   // 手番違い・範囲外の点数などの矛盾があればここで Error になる
+      return game;
+    } catch {
+      return null;
+    }
+  }
+
+  // 次回の準備画面の初期値（ルールと名前）。ルールがおかしければ標準ルールにする
+  function restoreSetup(data) {
+    if (!isObj(data)) return null;
+    const settings = cleanSettings(data.settings) || { ...DEFAULT_SETTINGS };
+    const names = Array.isArray(data.names)
+      ? data.names.filter((n) => typeof n === "string").map((n) => n.slice(0, NAME_MAX)).slice(0, LIMITS.playersMax)
+      : [];
+    while (names.length < LIMITS.playersMin) names.push("");
+    return { settings, names };
+  }
+
   return Object.freeze({
-    DEFAULT_SETTINGS, LIMITS, resetPoint, validateSetup, applyThrow, computeState, ranking, rematchOrder,
+    DEFAULT_SETTINGS, LIMITS, VERSION, resetPoint, validateSetup, applyThrow, computeState, ranking, rematchOrder,
+    restoreGame, restoreSetup,
   });
 })();
 // ==== LOGIC END ====
@@ -693,7 +793,60 @@ function showScreen(name) {
     $(`screen-${s}`).classList.toggle("is-active", s === name);
   }
   window.scrollTo(0, 0);
+  keepAwake(name === "game");
 }
+
+// ---- 画面の消灯防止（Wake Lock。HTTPS かつ対応ブラウザのみ。非対応なら何もしない） ----
+let wakeLock = null;
+let wakeWanted = false;
+
+async function keepAwake(on) {
+  wakeWanted = on;
+  if (!("wakeLock" in navigator)) return;
+  try {
+    if (on && !wakeLock && document.visibilityState === "visible") {
+      const lock = await navigator.wakeLock.request("screen");
+      lock.addEventListener("release", () => { if (wakeLock === lock) wakeLock = null; });
+      // 待っている間に試合画面を離れていたら、すぐ手放す
+      if (wakeWanted) wakeLock = lock; else await lock.release();
+    } else if (!on && wakeLock) {
+      const lock = wakeLock;
+      wakeLock = null;
+      await lock.release();
+    }
+  } catch {
+    // 省電力モードなどで断られても、試合はそのまま続ける
+  }
+}
+
+// 別のアプリから戻ったとき（ブラウザが自動で手放している）に取り直す
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && wakeWanted) keepAwake(true);
+});
+
+// ---- 端末への保存（localStorage）。保存できない環境でも試合は続けられる ----
+const STORE_GAME = "molkky-score:v1:game";
+const STORE_SETUP = "molkky-score:v1:lastSetup";
+
+const store = {
+  get(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* 保存できなくても続ける */ }
+  },
+  remove(key) {
+    try { localStorage.removeItem(key); } catch { /* 同上 */ }
+  },
+};
+
+const saveGame = () => { if (app.game) store.set(STORE_GAME, app.game); };
+const clearGame = () => store.remove(STORE_GAME);
 
 const app = {
   setup: {
@@ -801,25 +954,39 @@ function shufflePlayers() {
   renderPlayers();
 }
 
+// 新しい試合を始める（はじめる・再戦・やりなおしで共通）。開始後はルールを変えられない
+function beginGame(settings, names) {
+  app.game = {
+    version: L.VERSION,
+    settings: { ...settings },
+    players: names.map((name, i) => ({ id: `p${i + 1}`, name })),
+    throws: [],
+    startedAt: new Date().toISOString(),
+  };
+  app.padStep = "choose";
+  saveGame();
+  renderGame();
+  showScreen("game");
+}
+
 function startGame() {
   readSettingsFromForm();
   const s = { ...app.setup.settings };
   if (L.validateSetup(s, app.setup.players.length).length) return;
   if (s.resetMode === "half") s.resetValue = L.resetPoint(s);
-  app.game = {
-    version: 1,
-    settings: s,
-    players: app.setup.players.map((p, i) => ({ id: `p${i + 1}`, name: p.name.trim() || defaultName(i) })),
-    throws: [],
-    startedAt: new Date().toISOString(),
-  };
-  app.padStep = "choose";
-  renderGame();
-  showScreen("game");
+  // 次に開いたときの準備画面の初期値（空欄の名前は空欄のまま覚える）
+  store.set(STORE_SETUP, { settings: s, names: app.setup.players.map((p) => p.name.trim()) });
+  beginGame(s, app.setup.players.map((p, i) => p.name.trim() || defaultName(i)));
 }
 
 function initSetup() {
-  app.setup.players = [newPlayer(), newPlayer()];
+  const last = L.restoreSetup(store.get(STORE_SETUP));
+  if (last) {
+    app.setup.settings = last.settings;
+    app.setup.players = last.names.map((n) => newPlayer(n));
+  } else {
+    app.setup.players = [newPlayer(), newPlayer()];
+  }
   for (const id of ["target", "reset-value", "miss-limit"]) {
     $(id).addEventListener("input", () => { readSettingsFromForm(); refreshSetup(); });
   }
@@ -953,12 +1120,11 @@ function renderPad() {
       h("button", { type: "button", class: "choice fault", onclick: () => recordThrow(0, true) }, "フォルト", h("small", null, "ルールいはん")),
     ];
   }
-  // メニュー（ゲームを終了・リセット）は M4 で実装
   const noThrows = app.game.throws.length === 0;
   items.push(h("div", { class: "tools" },
     h("button", { type: "button", disabled: noThrows, onclick: undoThrow }, "↩︎ ひとつもどす"),
     h("button", { type: "button", onclick: openHistory }, "📋 きろく"),
-    h("button", { type: "button", disabled: true }, "☰ メニュー"),
+    h("button", { type: "button", onclick: openMenu }, "☰ メニュー"),
   ));
   $("pad").replaceChildren(...items);
 }
@@ -973,6 +1139,8 @@ function recordThrow(points, fault) {
   const before = L.computeState(game);
   if (before.finished) return;
   game.throws.push({ playerId: before.currentPlayerId, points, fault, at: new Date().toISOString() });
+  saveGame();   // 1投ごとに自動保存（F-11）
+  if (!wakeLock) keepAwake(true);   // 読み込み直後に断られていても、タップのときに取り直す
   app.padStep = "choose";
   const st = L.computeState(game);
   showToast(st.last, game);
@@ -984,6 +1152,7 @@ function undoThrow() {
   const game = app.game;
   const removed = game.throws.pop();
   if (!removed) return;
+  saveGame();
   app.padStep = "choose";
   const name = game.players.find((p) => p.id === removed.playerId).name;
   const what = removed.fault ? "フォルト" : `${removed.points}点`;
@@ -1088,16 +1257,58 @@ function rematch() {
   const prev = app.game;
   const st = L.computeState(prev);
   const order = L.rematchOrder(prev.players, st.winnerId, app.rematchOrder);
-  app.game = {
-    version: 1,
-    settings: { ...prev.settings },
-    players: order.map((p, i) => ({ id: `p${i + 1}`, name: p.name })),
-    throws: [],
-    startedAt: new Date().toISOString(),
-  };
-  app.padStep = "choose";
-  renderGame();
-  showScreen("game");
+  beginGame(prev.settings, order.map((p) => p.name));
+}
+
+function backToSetup() {
+  clearGame();
+  app.game = null;
+  showScreen("setup");
+}
+
+// ---- 確認ダイアログ（F-13）。「やめておく」・Esc・外側タップは false ----
+function askConfirm(message, note, okLabel) {
+  const dlg = $("confirm-dialog");
+  $("confirm-message").replaceChildren(message, h("small", null, note));
+  $("confirm-ok").textContent = okLabel;
+  dlg.returnValue = "";
+  dlg.showModal();
+  $("confirm-cancel").focus();   // うっかり決定しないよう「やめておく」を選んだ状態にする
+  return new Promise((resolve) => {
+    dlg.addEventListener("close", () => resolve(dlg.returnValue === "ok"), { once: true });
+  });
+}
+$("confirm-ok").addEventListener("click", () => $("confirm-dialog").close("ok"));
+$("confirm-cancel").addEventListener("click", () => $("confirm-dialog").close("cancel"));
+
+// ---- メニュー（試合中） ----
+function openMenu() {
+  $("menu-rule").textContent = ruleSummary(app.game.settings);
+  $("menu-dialog").showModal();
+}
+
+$("menu-close").addEventListener("click", () => $("menu-dialog").close());
+
+$("menu-restart").addEventListener("click", async () => {
+  $("menu-dialog").close();
+  const ok = await askConfirm("同じメンバーで、0点から やりなおしますか？", "いままでの点数は きえます。", "やりなおす");
+  if (ok) beginGame(app.game.settings, app.game.players.map((p) => p.name));
+});
+
+$("menu-quit").addEventListener("click", async () => {
+  $("menu-dialog").close();
+  const ok = await askConfirm("いまの試合を やめて、はじめの画面に もどりますか？", "この試合の きろくは のこりません。", "やめる");
+  if (ok) backToSetup();
+});
+
+// ダイアログの外側（暗いところ）をタップしたら閉じる
+for (const id of ["menu-dialog", "confirm-dialog", "history-dialog"]) {
+  $(id).addEventListener("click", (e) => {
+    if (e.target !== e.currentTarget) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (outside) e.currentTarget.close("cancel");
+  });
 }
 
 for (const b of document.querySelectorAll("[data-rematch-order]")) {
@@ -1109,9 +1320,23 @@ for (const b of document.querySelectorAll("[data-rematch-order]")) {
 $("rematch").addEventListener("click", rematch);
 $("result-undo").addEventListener("click", undoThrow);
 $("result-history").addEventListener("click", openHistory);
-$("back-to-setup").addEventListener("click", () => showScreen("setup"));
+$("back-to-setup").addEventListener("click", backToSetup);
 
+// ---- 起動 ----
 initSetup();
+
+// 途中の試合が保存されていれば、つづきから（T-13）。壊れたデータは捨てて準備画面へ
+const savedGame = L.restoreGame(store.get(STORE_GAME));
+if (savedGame) {
+  app.game = savedGame;
+  renderGame();   // 終わっていた試合なら結果画面を出す
+  if (!L.computeState(savedGame).finished) {
+    showScreen("game");
+    flashToast("つづきから はじめます", "");
+  }
+} else {
+  clearGame();
+}
 </script>
 </body>
 </html>

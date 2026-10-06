@@ -233,6 +233,57 @@ test("1投戻す: 何回でも戻せて、毎回はじめから計算し直し�
   }
 });
 
+test("T-13（ロジック部分）: 保存した試合を読み込むと、同じ点数・同じ手番で再開できる", () => {
+  const { game, state } = play(P1_30_MISS2, { n: 3 });
+  const saved = JSON.parse(JSON.stringify({ ...game, version: 1, startedAt: "2026-10-06T10:10:00+09:00" }));
+  const restored = L.restoreGame(saved);
+  assert.ok(restored);
+  assert.deepEqual(L.computeState(restored), state);
+});
+
+test("保存データの読み込み: 壊れたデータ・形式違いは捨てる（null）", () => {
+  const { game } = play([12, 1, 0]);
+  const ok = JSON.parse(JSON.stringify({ ...game, version: 1 }));
+  assert.ok(L.restoreGame(ok));
+
+  const broken = [
+    null, "abc", [], {},
+    { ...ok, version: 2 },
+    { ...ok, settings: { ...ok.settings, target: 5 } },
+    { ...ok, settings: { ...ok.settings, missLimitEnabled: "yes" } },
+    { ...ok, players: [ok.players[0]] },
+    { ...ok, players: [ok.players[0], ok.players[0]] },            // id の重複
+    { ...ok, throws: "x" },
+    { ...ok, throws: [{ playerId: "p2", points: 1, fault: false }] }, // 手番違い
+    { ...ok, throws: [{ playerId: "p1", points: 20, fault: false }] },// 範囲外
+    { ...ok, throws: [{ playerId: "p1", points: 1 }] },               // fault がない
+  ];
+  for (const b of broken) assert.equal(L.restoreGame(b), null, JSON.stringify(b));
+});
+
+test("保存データの読み込み: 名前は20文字まで、戻り点「半分」は目標点から計算し直す", () => {
+  const { game } = play([]);
+  const data = JSON.parse(JSON.stringify({ ...game, version: 1 }));
+  data.players[0].name = "あ".repeat(30);
+  data.settings = { ...data.settings, target: 40, resetMode: "half", resetValue: 99 };
+  const restored = L.restoreGame(data);
+  assert.equal(restored.players[0].name.length, 20);
+  assert.equal(restored.settings.resetValue, 20);
+});
+
+test("前回の準備（ルールと名前）の読み込み", () => {
+  assert.equal(L.restoreSetup(null), null);
+  assert.deepEqual(L.restoreSetup({ settings: { ...L.DEFAULT_SETTINGS, target: 35 }, names: ["たろう", "はなこ", 3] }), {
+    settings: { ...L.DEFAULT_SETTINGS, target: 35, resetValue: 17 },
+    names: ["たろう", "はなこ"],
+  });
+  // ルールが壊れていたら標準ルール、名前が足りなければ空欄でうめる
+  assert.deepEqual(L.restoreSetup({ settings: { target: "x" }, names: ["たろう"] }), {
+    settings: { ...L.DEFAULT_SETTINGS },
+    names: ["たろう", ""],
+  });
+});
+
 test("T-14（ロジック部分）: 準備画面の入力チェック", () => {
   const ok = { ...L.DEFAULT_SETTINGS };
   assert.deepEqual(L.validateSetup(ok, 2), []);
