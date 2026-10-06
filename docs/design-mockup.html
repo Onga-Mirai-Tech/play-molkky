@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>デザイン案 - モルック点数けいさん</title>
+<style>
+  /* ===== デザイントークン（index.html にもこのまま移す） ===== */
+  :root {
+    --bg: #FFF8EE;          /* 白木（バーチ材）のクリーム */
+    --surface: #FBEBD3;     /* 明るい木のカード */
+    --line: #E6CCA6;        /* 木目の線 */
+    --text: #4A2F1B;        /* こげ茶（本文） 11.6:1 */
+    --text-sub: #7A5537;    /* 茶（補足） 6.3:1 */
+    --accent: #B84E0B;      /* 焼きオレンジ（主ボタン・白文字 5.1:1） */
+    --accent-soft: #FFE2B3; /* 手番の行・お知らせ帯 */
+    --accent-line: #F59A3C; /* 手番の枠・強調線 */
+    --pin: #F3D9B1;         /* スキットル（木のピン）色のボタン */
+    --pin-edge: #C9A272;
+    --miss: #A8510A;        /* 0点の印 */
+    --fault: #9A3B26;       /* フォルト（赤茶） */
+    --out: #74665A;         /* おしまい（グレー） */
+    --win: #3D7A34;         /* ゴール（葉っぱの緑） */
+    --gold: #E0A100;
+    --radius: 14px;
+    --tap: 56px;
+    --font: system-ui, -apple-system, "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --font-num: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #EFE3D2;
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.5;
+  }
+  .doc { max-width: 1240px; margin: 0 auto; padding: 24px 16px 64px; }
+  .doc > h1 { font-size: 24px; margin: 0 0 4px; }
+  .doc > p.lead { margin: 0 0 24px; color: var(--text-sub); }
+  .doc h2.section { font-size: 18px; margin: 40px 0 12px; border-left: 6px solid var(--accent-line); padding-left: 10px; }
+
+  /* ===== スマホ枠 ===== */
+  .phones { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .phone-label { font-weight: 700; color: var(--text-sub); }
+  .phone {
+    width: 360px; max-width: calc(100vw - 32px);
+    height: 760px;
+    background: var(--bg);
+    border: 10px solid #3B2616;
+    border-radius: 36px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(74,47,27,.25);
+  }
+
+  /* ===== 共通部品 ===== */
+  .app-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px 12px;
+    background:
+      repeating-linear-gradient(100deg, rgba(201,162,114,.12) 0 6px, transparent 6px 14px),
+      var(--surface);
+    border-bottom: 2px solid var(--line);
+  }
+  .app-head .title { font-weight: 800; font-size: 18px; line-height: 1.2; }
+  .app-head .sub { font-size: 12px; color: var(--text-sub); }
+  .body { flex: 1; overflow: hidden; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .card { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+  .card h3 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+  .row + .row { border-top: 1px dashed var(--line); }
+  .row .label { font-size: 15px; }
+  .num-input {
+    display: inline-flex; align-items: center; gap: 4px; font-weight: 700;
+  }
+  .num-input b {
+    min-width: 64px; text-align: center; font-family: var(--font-num); font-size: 22px;
+    border: 2px solid var(--line); border-radius: 10px; padding: 2px 8px; background: var(--bg);
+  }
+  .seg { display: inline-flex; border: 2px solid var(--accent); border-radius: 999px; overflow: hidden; font-size: 13px; }
+  .seg span { padding: 6px 10px; }
+  .seg .on { background: var(--accent); color: #fff; font-weight: 700; }
+  .switch { width: 52px; height: 30px; border-radius: 999px; background: var(--accent); position: relative; flex: none; }
+  .switch::after { content: ""; position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; }
+  .summary {
+    background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 700;
+  }
+  .link-btn { font-size: 13px; color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+  .player { display: flex; align-items: center; gap: 6px; min-height: 52px; }
+  .player + .player { border-top: 1px dashed var(--line); }
+  .badge {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-line); color: var(--text); font-weight: 800; font-size: 14px;
+    display: grid; place-items: center;
+  }
+  .name-box { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 2px solid var(--line); border-radius: 10px; padding: 6px 8px; background: var(--bg); font-size: 15px; }
+  .mini { flex: none; width: 34px; height: 44px; border: 2px solid var(--line); border-radius: 10px; display: grid; place-items: center; color: var(--text-sub); background: #fff; font-size: 14px; }
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+  .btn {
+    min-height: var(--tap); border-radius: var(--radius); border: 2px solid var(--line); background: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-weight: 700; font-size: 15px; flex: 1;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 20px; box-shadow: 0 4px 0 #8A3A08; }
+  .btn.sub { min-height: 48px; font-size: 14px; }
+
+  /* ===== 試合画面 ===== */
+  .turn {
+    background: var(--accent-soft); border-bottom: 2px solid var(--accent-line);
+    padding: 10px 16px 12px; text-align: center;
+  }
+  .turn .round { display: inline-block; font-size: 12px; font-weight: 700; background: #fff; border-radius: 999px; padding: 2px 10px; border: 1px solid var(--accent-line); }
+  .turn .who { font-size: 24px; font-weight: 800; margin-top: 4px; }
+  .turn .left { font-size: 15px; }
+  .turn .left b { font-family: var(--font-num); font-size: 22px; color: var(--accent); }
+  .warn {
+    margin-top: 6px; display: inline-block; font-size: 13px; font-weight: 700;
+    background: #fff; color: var(--miss); border: 2px solid var(--miss); border-radius: 999px; padding: 2px 12px;
+  }
+
+  .board { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px 0; }
+  .p-row {
+    display: grid; grid-template-columns: 18px 1fr auto 58px; align-items: center; gap: 8px;
+    background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px;
+  }
+  .p-row.now { background: var(--accent-soft); border-color: var(--accent-line); box-shadow: 0 0 0 2px var(--accent-line); }
+  .p-row .mark { color: var(--accent); font-size: 14px; }
+  .p-row .nm { font-weight: 700; font-size: 15px; line-height: 1.2; }
+  .p-row .meta { font-size: 11px; color: var(--text-sub); display: flex; gap: 6px; align-items: center; }
+  .dots { letter-spacing: 1px; color: var(--miss); font-size: 11px; }
+  .p-row .score { font-family: var(--font-num); font-size: 30px; font-weight: 800; text-align: right; line-height: 1; }
+  .p-row .last { font-size: 12px; text-align: right; color: var(--text-sub); }
+  .p-row.out { background: #F4EEE7; border-style: dashed; color: var(--out); }
+  .p-row.out .nm { text-decoration: line-through; }
+  .tag { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 0 8px; background: #fff; border: 1px solid var(--out); color: var(--out); }
+
+  /* 入力直後に0.5〜1秒だけ、スコアボードの上に重ねて出す */
+  .toast {
+    position: absolute; left: 12px; right: 12px; top: 156px; z-index: 2;
+    padding: 10px 12px; border-radius: 12px;
+    background: #fff; border: 2px solid var(--accent-line); font-weight: 800; text-align: center; font-size: 16px;
+    box-shadow: 0 6px 16px rgba(74,47,27,.2);
+  }
+
+  .pad {
+    margin-top: auto; padding: 10px 12px 12px; background: var(--surface); border-top: 2px solid var(--line);
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .pin {
+    height: 58px; border: 2px solid var(--pin-edge); background: var(--pin);
+    font-family: var(--font-num); font-size: 26px; font-weight: 800;
+    display: grid; place-items: center; position: relative;
+    /* スキットル（木のピン）の斜めにカットされた頭をイメージ */
+    border-radius: 6px 6px 12px 12px;
+    clip-path: polygon(0 18%, 100% 0, 100% 100%, 0 100%);
+    padding-top: 6px;
+  }
+  .pin.zero, .pin.fault {
+    grid-column: span 2; clip-path: none; border-radius: 12px; background: #fff;
+    font-size: 20px; font-family: var(--font); padding-top: 0; line-height: 1.1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .pin.zero { border-color: var(--miss); color: var(--miss); }
+  .pin.fault { border-color: var(--fault); color: var(--fault); }
+  .pin small { font-size: 11px; font-weight: 700; }
+  .tools { grid-column: 1 / -1; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
+  .tools .btn { min-height: 44px; font-size: 13px; }
+
+  /* ===== 結果画面 ===== */
+  .goal { text-align: center; padding: 20px 16px 8px; }
+  .goal .big { font-size: 36px; font-weight: 900; color: var(--accent); letter-spacing: .05em; }
+  .goal .winner { font-size: 26px; font-weight: 800; margin-top: 4px; }
+  .goal .msg { color: var(--text-sub); font-size: 14px; }
+  .rank { display: grid; grid-template-columns: 40px 1fr auto; gap: 8px; align-items: center; padding: 8px 4px; }
+  .rank + .rank { border-top: 1px dashed var(--line); }
+  .rank .pos { font-weight: 800; text-align: center; }
+  .rank .sc { font-family: var(--font-num); font-size: 22px; font-weight: 800; }
+  .rank.first { background: var(--accent-soft); border-radius: 10px; }
+  .rank.out { color: var(--out); }
+
+  /* ===== 説明パート ===== */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .sw { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; font-size: 13px; }
+  .sw i { display: block; height: 48px; }
+  .sw div { padding: 6px 8px; }
+  .sw code { font-size: 12px; color: var(--text-sub); }
+  table.words { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; font-size: 14px; }
+  table.words th, table.words td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  table.words th { background: var(--surface); }
+  .wrap-table { overflow-x: auto; }
+  ul.principles { background: #fff; border-radius: 12px; padding: 12px 12px 12px 32px; margin: 0; }
+  ul.principles li + li { margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>デザイン案 v1 ― 木のぬくもり ×やさしい言葉</h1>
+  <p class="lead">モルックの木のピン（スキットル）をイメージした、オレンジと茶色の配色。子どもからおじいちゃん・おばあちゃんまで迷わず使える言葉づかいにしています。</p>
+
+  <div class="phones">
+
+    <!-- ===== 準備画面 ===== -->
+    <div class="phone-wrap">
+      <div class="phone-label">① はじめの画面（準備）</div>
+      <div class="phone">
+        <div class="app-head">
+          <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+            <path d="M9 9 L25 5 V29 H9 Z" fill="#F3D9B1" stroke="#B84E0B" stroke-width="2.5" stroke-linejoin="round"/>
+            <text x="17" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#4A2F1B">12</text>
+          </svg>
+          <div>
+            <div class="title">モルック 点数けいさん</div>
+            <div class="sub">みんなの点数を、かんたんに記録</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="card">
+            <h3>📏 ルール</h3>
+            <div class="row"><span class="label">ゴールの点数</span><span class="num-input"><b>50</b>点</span></div>
+            <div class="row"><span class="label">こえたら</span><span class="seg"><span class="on">半分（25点）</span><span>自分で決める</span></span></div>
+            <div class="row"><span class="label">0点が つづいたら<br>おしまい</span><span style="display:flex;gap:8px;align-items:center"><span class="num-input"><b style="min-width:44px">3</b>回</span><span class="switch"></span></span></div>
+            <div class="row"><span class="label">フォルトも 0点に<br>かぞえる</span><span class="switch"></span></div>
+            <div class="summary">50点ぴったりでゴール ／ こえたら25点にもどる ／ 3回つづけて0点でおしまい</div>
+            <div style="text-align:right;margin-top:6px"><span class="link-btn">いつものルールにもどす</span></div>
+          </div>
+
+          <div class="card">
+            <h3>🙋 あそぶ人（投げる順）</h3>
+            <div class="player"><span class="badge">1</span><span class="name-box">たろう</span><span class="mini">▲</span><span class="mini">▼</span><span class="mini">✕</span></div>
+            <div class="player"><span class="badge">2</span><span class="name-box">はなこ</span><span class="mini">▲</span><span class="mini">▼</span><span class="mini">✕</span></div>
+            <div class="player"><span class="badge">3</span><span class="name-box" style="color:var(--text-sub)">おじいちゃん</span><span class="mini">▲</span><span class="mini">▼</span><span class="mini">✕</span></div>
+            <div class="btn-row"><span class="btn sub">＋ 人をふやす</span><span class="btn sub">🔀 順番をまぜる</span></div>
+          </div>
+
+          <span class="btn primary" style="flex:none">はじめる！</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 試合画面 ===== -->
+    <div class="phone-wrap">
+      <div class="phone-label">② あそんでいる画面（試合）</div>
+      <div class="phone">
+        <div class="turn">
+          <span class="round">3まわりめ</span>
+          <div class="who">はなこ さんの番</div>
+          <div class="left">あと <b>12</b> 点でゴール</div>
+          <div class="warn">⚠ つぎ0点だと おしまい。がんばって！</div>
+        </div>
+
+        <div class="toast">こえちゃった！ 53 → <span style="color:var(--accent)">25点</span>にもどるよ</div>
+
+        <div class="board">
+          <div class="p-row">
+            <span class="mark"></span>
+            <div><div class="nm">たろう</div><div class="meta">あと 25点 <span class="dots">○○○</span></div></div>
+            <div class="score">25</div>
+            <div class="last">こえた↩︎</div>
+          </div>
+          <div class="p-row now">
+            <span class="mark">▶</span>
+            <div><div class="nm">はなこ</div><div class="meta">あと 12点 <span class="dots">●●○</span></div></div>
+            <div class="score">38</div>
+            <div class="last">0点</div>
+          </div>
+          <div class="p-row">
+            <span class="mark"></span>
+            <div><div class="nm">おじいちゃん</div><div class="meta">あと 9点 <span class="dots">○○○</span></div></div>
+            <div class="score">41</div>
+            <div class="last">+7</div>
+          </div>
+          <div class="p-row out">
+            <span class="mark"></span>
+            <div><div class="nm">けんた</div><div class="meta"><span class="tag">おしまい</span></div></div>
+            <div class="score">0</div>
+            <div class="last">0点×3</div>
+          </div>
+        </div>
+
+        <div class="pad">
+          <span class="pin">1</span><span class="pin">2</span><span class="pin">3</span><span class="pin">4</span>
+          <span class="pin">5</span><span class="pin">6</span><span class="pin">7</span><span class="pin">8</span>
+          <span class="pin">9</span><span class="pin">10</span><span class="pin">11</span><span class="pin">12</span>
+          <span class="pin zero">0点<small>たおれなかった</small></span>
+          <span class="pin fault">フォルト<small>ルールいはん</small></span>
+          <div class="tools">
+            <span class="btn">↩︎ ひとつもどす</span>
+            <span class="btn">📋 きろく</span>
+            <span class="btn">☰ メニュー</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 結果画面 ===== -->
+    <div class="phone-wrap">
+      <div class="phone-label">③ ゴールの画面（結果）</div>
+      <div class="phone">
+        <div class="goal">
+          <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true">
+            <path d="M20 10 H52 V28 A16 16 0 0 1 20 28 Z" fill="#E0A100" stroke="#8A5A00" stroke-width="2.5"/>
+            <path d="M20 14 H10 A10 10 0 0 0 22 32 M52 14 H62 A10 10 0 0 1 50 32" fill="none" stroke="#8A5A00" stroke-width="2.5"/>
+            <rect x="32" y="44" width="8" height="10" fill="#C9A272" stroke="#8A5A00" stroke-width="2"/>
+            <rect x="22" y="54" width="28" height="8" rx="2" fill="#B84E0B" stroke="#8A3A08" stroke-width="2"/>
+          </svg>
+          <div class="big">ゴール！</div>
+          <div class="winner">はなこ さん</div>
+          <div class="msg">おめでとう！ 7まわりめで 50点ぴったり</div>
+        </div>
+        <div class="body">
+          <div class="card">
+            <h3>🏅 けっか</h3>
+            <div class="rank first"><span class="pos">🥇</span><span>はなこ</span><span class="sc">50</span></div>
+            <div class="rank"><span class="pos">2</span><span>おじいちゃん</span><span class="sc">41</span></div>
+            <div class="rank"><span class="pos">3</span><span>たろう</span><span class="sc">25</span></div>
+            <div class="rank out"><span class="pos">—</span><span>けんた（おしまい）</span><span class="sc">0</span></div>
+          </div>
+          <span class="btn primary" style="flex:none;font-size:18px">同じメンバーで もう一回</span>
+          <div class="btn-row" style="margin-top:0">
+            <span class="btn sub">はじめの画面へ</span>
+            <span class="btn sub">↩︎ さっきの1投を<br>とりけす</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section">色（モルックの木のピンから）</h2>
+  <div class="swatches">
+    <div class="sw"><i style="background:#FFF8EE"></i><div>背景・白木<br><code>#FFF8EE</code></div></div>
+    <div class="sw"><i style="background:#FBEBD3"></i><div>カード・明るい木<br><code>#FBEBD3</code></div></div>
+    <div class="sw"><i style="background:#F3D9B1"></i><div>数字ボタン・ピン<br><code>#F3D9B1</code></div></div>
+    <div class="sw"><i style="background:#FFE2B3"></i><div>手番・お知らせ<br><code>#FFE2B3</code></div></div>
+    <div class="sw"><i style="background:#F59A3C"></i><div>強調の線<br><code>#F59A3C</code></div></div>
+    <div class="sw"><i style="background:#B84E0B"></i><div>主ボタン・焼きオレンジ<br><code>#B84E0B</code>（白文字 5.1:1）</div></div>
+    <div class="sw"><i style="background:#4A2F1B"></i><div>文字・こげ茶<br><code>#4A2F1B</code>（11.6:1）</div></div>
+    <div class="sw"><i style="background:#3D7A34"></i><div>ゴール・葉っぱの緑<br><code>#3D7A34</code></div></div>
+  </div>
+
+  <h2 class="section">やさしい言葉への言いかえ</h2>
+  <div class="wrap-table">
+    <table class="words">
+      <tr><th>設計書の言葉</th><th>画面に出す言葉</th><th>ねらい</th></tr>
+      <tr><td>ゲーム開始</td><td>はじめる！</td><td>短く、わくわく感</td></tr>
+      <tr><td>プレイヤー／投擲順</td><td>あそぶ人（投げる順）</td><td>カタカナ・漢字を減らす</td></tr>
+      <tr><td>目標点</td><td>ゴールの点数</td><td>子どもにも通じる</td></tr>
+      <tr><td>超過時の戻り点</td><td>こえたら ○点にもどる</td><td>何が起きるかをそのまま書く</td></tr>
+      <tr><td>連続ミス失格</td><td>0点が3回つづいたら おしまい</td><td>「失格」の強さをやわらげる</td></tr>
+      <tr><td>失格</td><td>おしまい</td><td>責める感じを出さない</td></tr>
+      <tr><td>ラウンド3</td><td>3まわりめ</td><td>英語を使わない</td></tr>
+      <tr><td>1投戻す</td><td>ひとつもどす</td><td>まちがえても安心</td></tr>
+      <tr><td>投擲履歴</td><td>きろく</td><td>ひらがなで短く</td></tr>
+      <tr><td>勝利</td><td>ゴール！ おめでとう！</td><td>みんなで喜べる</td></tr>
+      <tr><td>再戦</td><td>同じメンバーで もう一回</td><td>次の行動がわかる</td></tr>
+      <tr><td>次ミスで失格</td><td>つぎ0点だと おしまい。がんばって！</td><td>注意＋応援</td></tr>
+      <tr><td>超過！53→25点</td><td>こえちゃった！ 53 → 25点にもどるよ</td><td>話しかける口調</td></tr>
+      <tr><td>フォルト</td><td>フォルト（そのまま）</td><td>公式の用語。設定に説明を添える</td></tr>
+    </table>
+  </div>
+
+  <h2 class="section">デザインの約束ごと</h2>
+  <ul class="principles">
+    <li>明るいクリーム色の背景に、こげ茶の文字。日差しの下でも読める濃さ（4.5:1以上）を守る</li>
+    <li>数字ボタンは木のピン（斜めにカットされた頭）の形。押せる場所がひと目でわかる</li>
+    <li>色だけに頼らない：手番は「▶」、0点は「●」、おしまいは取り消し線＋札で区別</li>
+    <li>点数は大きな丸みのある数字。名前より点数が先に目に入る</li>
+    <li>言葉は話しかける口調。「失格」「エラー」など強い言葉を使わない</li>
+    <li>暗い色・ダークモードは使わない</li>
+  </ul>
+</div>
+</body>
+</html>

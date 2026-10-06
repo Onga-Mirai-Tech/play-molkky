@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="スマホ1台でモルックの全員の得点を記録・自動計算するWEBアプリ">
+<meta name="theme-color" content="#FBEBD3">
+<title>モルック 点数けいさん</title>
+<style>
+  /* モルックの木のピン（スキットル）をイメージした配色。docs/design-mockup.html と同じ値。
+     コントラスト比は背景 --bg に対する値。暗い色・ダークモードは使わない。 */
+  :root {
+    --bg: #FFF8EE;            /* 白木（バーチ材）のクリーム */
+    --surface: #FBEBD3;       /* 明るい木のカード */
+    --line: #E6CCA6;          /* 木目の線 */
+    --text: #4A2F1B;          /* こげ茶（本文） 11.6:1 */
+    --text-sub: #7A5537;      /* 茶（補足） 6.3:1 */
+    --accent: #B84E0B;        /* 焼きオレンジ（主ボタン。白文字で 5.1:1） */
+    --accent-text: #FFFFFF;
+    --accent-soft: #FFE2B3;   /* 手番の行・お知らせ帯 */
+    --accent-line: #F59A3C;   /* 手番の枠・強調線 */
+    --pin: #F3D9B1;           /* 数字ボタン（木のピン） */
+    --pin-edge: #C9A272;
+    --miss: #A8510A;          /* 0点の印 5.2:1 */
+    --fault: #9A3B26;         /* フォルト 6.6:1 */
+    --out: #74665A;           /* おしまい */
+    --win: #3D7A34;           /* ゴール 4.9:1 */
+    --gold: #E0A100;
+    --radius: 14px;
+    --gap: 8px;
+    --tap: 56px;              /* ボタンの最小サイズ */
+    --font: system-ui, -apple-system, "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --font-num: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body { margin: 0; height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;          /* ダブルタップ拡大を無効化 */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button, input, select { font: inherit; color: inherit; }
+
+  button {
+    min-height: var(--tap);
+    min-width: var(--tap);
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    cursor: pointer;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 800; font-size: 20px; box-shadow: 0 4px 0 #8A3A08; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .screen {
+    display: none;
+    flex-direction: column;
+    min-height: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    gap: 16px;
+  }
+  .screen.is-active { display: flex; }
+
+  h1 { font-size: 22px; margin: 0; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+
+  .panel {
+    background: #FFFFFF;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .placeholder { color: var(--text-sub); margin: 0; }
+
+  .site-footer {
+    margin-top: auto;
+    font-size: 13px;
+    color: var(--text-sub);
+    text-align: center;
+  }
+  .site-footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+<!-- 準備画面（設計書 4-1） -->
+<main id="screen-setup" class="screen is-active" aria-labelledby="setup-title">
+  <h1 id="setup-title">モルック 点数けいさん</h1>
+
+  <section class="panel" aria-labelledby="rules-title">
+    <h2 id="rules-title">ルール</h2>
+    <p class="placeholder">ゴールの点数・こえたときの点数・0点がつづいたらおしまい・フォルトの扱い（M2で実装）</p>
+  </section>
+
+  <section class="panel" aria-labelledby="players-title">
+    <h2 id="players-title">あそぶ人（投げる順）</h2>
+    <p class="placeholder">名前の入力・並べかえ（M2で実装）</p>
+  </section>
+
+  <button type="button" class="primary" id="start-button" disabled>はじめる！</button>
+
+  <footer class="site-footer">
+    © Onga-Mirai-Tech ・ <a href="https://github.com/Onga-Mirai-Tech/play-molkky" rel="noopener">ソースコード（MIT License）</a>
+  </footer>
+</main>
+
+<!-- 試合画面（設計書 4-2） -->
+<main id="screen-game" class="screen" aria-label="試合">
+  <section class="panel" aria-label="手番"><p class="placeholder">手番表示（M2で実装）</p></section>
+  <section class="panel" aria-label="スコアボード"><p class="placeholder">スコアボード（M2で実装）</p></section>
+  <section class="panel" aria-label="得点入力"><p class="placeholder">入力パッド（M2で実装）</p></section>
+</main>
+
+<!-- 結果画面（設計書 4-4） -->
+<main id="screen-result" class="screen" aria-label="結果">
+  <section class="panel"><p class="placeholder">勝者・順位（M3で実装）</p></section>
+</main>
+
+<script>
+"use strict";
+
+// ==== LOGIC START ====
+// 得点計算の純粋関数（設計書 第5章）。画面（DOM）には触れない。
+// tests/ からこの区間だけを切り出してテストするため、目印のコメントは消さないこと。
+const MolkkyLogic = (() => {
+  // 標準ルール: 目標50点・超過で目標の半分（25点）・連続3回ミスで失格・フォルトも連続ミスに数える
+  const DEFAULT_SETTINGS = Object.freeze({
+    target: 50,
+    resetMode: "half",
+    resetValue: 25,
+    missLimitEnabled: true,
+    missLimit: 3,
+    faultCountsAsMiss: true,
+  });
+
+  return Object.freeze({ DEFAULT_SETTINGS });
+})();
+// ==== LOGIC END ====
+
+// ---- 画面 ----
+const SCREENS = ["setup", "game", "result"];
+
+function showScreen(name) {
+  if (!SCREENS.includes(name)) throw new Error(`unknown screen: ${name}`);
+  for (const s of SCREENS) {
+    document.getElementById(`screen-${s}`).classList.toggle("is-active", s === name);
+  }
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

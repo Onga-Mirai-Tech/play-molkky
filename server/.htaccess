@@ -1,0 +1,57 @@
+# =====================================================================
+# モルック得点計算アプリ - Xserver（Apache）用設定
+# scripts/build.sh により dist/.htaccess としてドキュメントルートに配置される。
+# ドメインを変更する場合は、下記「正規ホスト名」の2箇所を書き換えること。
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# HTTPS化 + 正規ホスト名への統一
+# Xserverのサブドメインは「メインドメインのpublic_html/<サブドメインのFQDN>/」に
+# 置かれるため、https://onga-mirai-tech.com/<サブドメインのFQDN>/ でも
+# 同じ内容が見えてしまう。正規ホスト名以外からのアクセスはすべて301で寄せる。
+# ---------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !on [OR]
+  RewriteCond %{HTTP_HOST} !^play-molkky\.onga-mirai-tech\.com$ [NC]
+  RewriteRule ^(.*)$ https://play-molkky.onga-mirai-tech.com/$1 [R=301,L]
+</IfModule>
+
+# ディレクトリ一覧を表示しない
+Options -Indexes
+
+# ---------------------------------------------------------------------
+# セキュリティヘッダー
+# ---------------------------------------------------------------------
+<IfModule mod_headers.c>
+  # HSTS：公開直後は1日で運用し、安定を確認してから max-age=31536000（1年）に延ばす
+  Header always set Strict-Transport-Security "max-age=86400"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "DENY"
+  # screen-wake-lock は試合中の画面消灯防止（F-12）で使うため制限しない
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+
+  # CSP：index.html 1ファイル構成のため、インラインの script/style のみ許可する。
+  #  - 外部からの読み込みは一切しない（CDN・フォントなし）
+  #  - connect-src 'none'：どこにも通信しない（プレイヤー名などをサーバーへ送らない）
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+</IfModule>
+
+# ---------------------------------------------------------------------
+# キャッシュ
+# HTMLは毎回サーバーに更新確認させ、修正がすぐ利用者に届くようにする
+# （変更が無ければ 304 が返るだけなので、通信量はほとんど増えない）
+# ---------------------------------------------------------------------
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------
+# 圧縮
+# ---------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html image/svg+xml
+</IfModule>
