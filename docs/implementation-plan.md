@@ -88,14 +88,16 @@
 
 ## M5. 仕上げと納品（設計書 6、7）
 
-- [ ] 非機能要件の確認: 応答0.1秒以内、`index.html` 200KB以下、外部通信ゼロ、コントラスト4.5:1以上、点数24px以上
-- [ ] テストT-01〜T-14 を実機で確認（iPhone Safari・Android Chrome。PCは表示確認のみ）
+- [x] 非機能要件の確認: `index.html` 58KB（200KB以下）、外部通信ゼロ（CSP `connect-src 'none'`）、コントラスト4.5:1以上（配色時に計算済み）、点数24px以上（32px）
+- [ ] テストT-01〜T-16 を実機で確認（iPhone Safari・Android Chrome。PCは表示確認のみ）← **作成者の実機確認待ち**
 - [ ] 必要なら `icon-180.png` を追加（`scripts/build.sh` の公開ファイルにも追記）
-- [ ] Xサーバー: DNS反映を確認 → `play-molkky.onga-mirai-tech.com` に無料独自SSLを追加
-- [ ] GitHub: `bash scripts/setup-deploy-env.sh` で Environment `production` を登録（鍵・known_hosts・ホストは既存流用、`XSERVER_DEPLOY_PATH` はこのサブドメイン専用のドキュメントルート）
-- [ ] Actions を `dry_run: true` で手動実行し、同期対象が `index.html` と `.htaccess` だけであることを確認
-- [ ] `DEPLOY_ENABLED=true` にして main へマージ → 本番デプロイ
-- [ ] `https://play-molkky.onga-mirai-tech.com/` をスマホで開いて最終確認（HTTP・`onga-mirai-tech.com/play-molkky.onga-mirai-tech.com/` からの転送、Wake Lock、CSPでコンソールにエラーが出ないこと）
+- [x] Xサーバー: DNS反映・無料独自SSL（Let's Encrypt、2027-01-04まで）を確認（2026-10-06）
+- [x] GitHub: `bash scripts/setup-deploy-env.sh` で Environment `production` を登録（2026-10-06、作成者が実行）
+- [x] Actions を `dry_run: true` で実行。送るのは `index.html` と `.htaccess`、消えるのは Xサーバー初期ページの `default_page.png` だけと確認
+- [x] `DEPLOY_ENABLED=true` にして本番デプロイ（2026-10-06）
+- [x] 公開URLの確認: タイトル表示、HTTP・メインドメイン経由からの301転送、セキュリティヘッダー、`.htaccess` は403、CSPエラーなし、保存と再開（T-13）
+- [ ] Wake Lock が実機で効くこと（ブラウザペインでは許可されないため未確認）
+- [ ] 安定を確認したら HSTS を `max-age=31536000`（1年）に延ばす（`server/.htaccess`）
 
 完了条件: 公開URLで1試合を最後まで通せる。
 
