@@ -40,12 +40,14 @@
 
 ## M1. 計算ロジック（設計書 5-2、テストT-01〜T-12・T-15・T-16）
 
-- [ ] `resetPoint` / `applyThrow` / `computeState` を純粋関数で実装
-  - `computeState` の戻り値: 各プレイヤーの `score` `misses` `out`、手番プレイヤー、ラウンド数、`winner`、各投の判定（ADD/OVER/MISS/OUT/WIN）
-  - 失格者を飛ばす手番送り、先頭に戻ったらラウンド+1、残り1人で終了
-- [ ] フォルトの扱い（`faultCountsAsMiss` が true なら連続ミス+1、false なら0点で連続ミス数は変えない）
-- [ ] テストT-01〜T-12・T-15・T-16 を `node --test` で実行（T-13は保存、T-14は準備画面なのでM2/M4）
-- [ ] 追加で押さえる境界: 目標点ちょうどの直前投の取り消し（T-09）、全員が失格寸前、戻り点が小数になる目標値（35→17）
+- [x] `resetPoint` / `applyThrow` / `computeState` を純粋関数で実装
+  - `computeState` の戻り値: 各プレイヤーの `score` `misses` `out` `remaining`（あと何点） `atRisk`（つぎ0点でおしまい）、`currentPlayerId`、`round`、`finished`、`winnerId`、各投の記録 `history`（判定 ADD/OVER/MISS/OUT/WIN/FAULT、前後の点数）
+  - 失格者を飛ばす手番送り、先頭を越えたらラウンド+1、残り1人で終了
+  - 記録の矛盾（手番違い・終了後の投擲・範囲外の点数）は Error（M4 で壊れた保存データの検出に使う）
+- [x] フォルトの扱い（`faultCountsAsMiss` が true なら連続ミス+1、false なら0点で連続ミス数は変えない）
+- [x] `validateSetup`（T-14 のロジック部分。エラー文はやさしい言葉）
+- [x] テストT-01〜T-12・T-14（ロジック）・T-15・T-16 を `node --test` で実行（計21件）
+- [x] 追加で押さえた境界: 勝利直後の取り消し（T-09）、0点・フォルト・0点の連続、ラウンドの進み方、記録の矛盾
 
 完了条件: 上記テストがすべて通る（ローカルとGitHub Actionsの両方）。**ここで一度止まり、結果を報告して確認を取る。**
 

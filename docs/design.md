@@ -219,6 +219,8 @@ function applyThrow(p, t, s) {   // p = あるプレイヤーの状態, t = { po
 
 画面は computeState の結果だけを見て描画する（状態を画面側で直接書き換えない）。
 
+実装の正は `index.html` の `// ==== LOGIC START ====` 〜 `// ==== LOGIC END ====` 区間（`MolkkyLogic`）。上のコードは考え方の要約で、実装では入力チェック（`validateSetup`）、あと何点（`remaining`）、警告（`atRisk`）、各投の記録（`history`）も返す。
+
 ## 6. 技術構成とデプロイ
 
 本体は `index.html` 1ファイルで完結させる。PHP・データベースは使わない。公開URLは `https://play-molkky.onga-mirai-tech.com/`（サブドメインのルート）。

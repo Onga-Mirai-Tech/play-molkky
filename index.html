@@ -148,7 +148,125 @@ const MolkkyLogic = (() => {
     faultCountsAsMiss: true,
   });
 
-  return Object.freeze({ DEFAULT_SETTINGS });
+  const LIMITS = Object.freeze({
+    targetMin: 10, targetMax: 200,
+    missLimitMin: 1, missLimitMax: 5,
+    playersMin: 2, playersMax: 12,
+    pointsMax: 12,
+  });
+
+  const isInt = (v) => Number.isInteger(v);
+
+  // 超過したときに戻る点数
+  function resetPoint(s) {
+    return s.resetMode === "half" ? Math.floor(s.target / 2) : s.resetValue;
+  }
+
+  // 準備画面の入力チェック。問題がなければ空の配列（画面に出すやさしい言葉で返す）
+  function validateSetup(s, playerCount) {
+    const errors = [];
+    if (!isInt(s.target) || s.target < LIMITS.targetMin || s.target > LIMITS.targetMax) {
+      errors.push(`ゴールの点数は ${LIMITS.targetMin}〜${LIMITS.targetMax}点 のあいだで決めてください`);
+    }
+    if (s.resetMode !== "half" && s.resetMode !== "custom") {
+      errors.push("こえたときの点数の決め方をえらんでください");
+    } else if (s.resetMode === "custom" && (!isInt(s.resetValue) || s.resetValue < 0 || s.resetValue >= s.target)) {
+      errors.push("こえたときにもどる点数は、0点から ゴールの点数より小さい点数 にしてください");
+    }
+    if (s.missLimitEnabled && (!isInt(s.missLimit) || s.missLimit < LIMITS.missLimitMin || s.missLimit > LIMITS.missLimitMax)) {
+      errors.push(`おしまいになる回数は ${LIMITS.missLimitMin}〜${LIMITS.missLimitMax}回 にしてください`);
+    }
+    if (!isInt(playerCount) || playerCount < LIMITS.playersMin || playerCount > LIMITS.playersMax) {
+      errors.push(`あそぶ人は ${LIMITS.playersMin}〜${LIMITS.playersMax}人 にしてください`);
+    }
+    return errors;
+  }
+
+  // 1投を1人の状態 p に当てはめ、判定を返す（p を書き換える）
+  //   ADD: 加算 / OVER: 超過して戻り点へ / WIN: 目標点ちょうど
+  //   MISS: 0点（連続ミス+1） / OUT: 連続ミスで失格 / FAULT: 連続ミスに数えないフォルト
+  function applyThrow(p, t, s) {
+    if (t.fault && !s.faultCountsAsMiss) return "FAULT";
+    const points = t.fault ? 0 : t.points;
+    if (points === 0) {
+      p.misses += 1;
+      if (s.missLimitEnabled && p.misses >= s.missLimit) {
+        p.score = 0; p.out = true; return "OUT";
+      }
+      return "MISS";
+    }
+    p.misses = 0;
+    const next = p.score + points;
+    if (next === s.target) { p.score = next; return "WIN"; }
+    if (next > s.target) { p.score = resetPoint(s); return "OVER"; }
+    p.score = next;
+    return "ADD";
+  }
+
+  // 保存データ（settings・players・throws）から、現在の試合の状態をすべて計算し直す。
+  // 記録に矛盾（手番違い・終了後の投擲・範囲外の点数）があれば Error を投げる。
+  function computeState(game) {
+    const s = game.settings;
+    const players = game.players.map((pl) => ({
+      id: pl.id, name: pl.name, score: 0, misses: 0, out: false,
+    }));
+    const history = [];
+    let turn = 0;          // 次に投げる人の players での位置
+    let round = 1;
+    let winnerId = null;
+    let finished = false;
+
+    const activeCount = () => players.filter((p) => !p.out).length;
+
+    for (const [i, t] of game.throws.entries()) {
+      if (finished) throw new Error(`throw #${i}: 試合終了後の投擲です`);
+      const p = players[turn];
+      if (t.playerId !== p.id) throw new Error(`throw #${i}: 手番は ${p.id} ですが ${t.playerId} の記録です`);
+      if (!t.fault && (!isInt(t.points) || t.points < 0 || t.points > LIMITS.pointsMax)) {
+        throw new Error(`throw #${i}: 点数 ${t.points} は 0〜${LIMITS.pointsMax} ではありません`);
+      }
+
+      const before = p.score;
+      const result = applyThrow(p, t, s);
+      history.push({
+        index: i, round, playerId: p.id,
+        points: t.fault ? 0 : t.points, fault: !!t.fault,
+        result, before, after: p.score, misses: p.misses,
+      });
+
+      if (result === "WIN") {
+        finished = true; winnerId = p.id;
+      } else if (result === "OUT" && activeCount() <= 1) {
+        // 残りが1人ならその人の勝ち（全員失格は1人プレイのときだけ起こりうる）
+        finished = true;
+        winnerId = activeCount() === 1 ? players.find((q) => !q.out).id : null;
+      } else {
+        // 次の「失格していない人」へ。先頭を越えたらラウンド+1
+        do {
+          turn += 1;
+          if (turn === players.length) { turn = 0; round += 1; }
+        } while (players[turn].out);
+      }
+    }
+
+    for (const p of players) {
+      p.remaining = s.target - p.score;
+      // 「つぎ0点だと おしまい」の警告
+      p.atRisk = !p.out && s.missLimitEnabled && p.misses === s.missLimit - 1;
+    }
+
+    return {
+      players,
+      history,
+      round,
+      finished,
+      winnerId,
+      currentPlayerId: finished ? null : players[turn].id,
+      last: history.length ? history[history.length - 1] : null,
+    };
+  }
+
+  return Object.freeze({ DEFAULT_SETTINGS, LIMITS, resetPoint, validateSetup, applyThrow, computeState });
 })();
 // ==== LOGIC END ====
 
