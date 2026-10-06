@@ -112,7 +112,7 @@
   /* ===== 試合画面 ===== */
   .turn {
     background: var(--accent-soft); border-bottom: 2px solid var(--accent-line);
-    padding: 10px 16px 12px; text-align: center;
+    padding: 8px 16px 8px; text-align: center;
   }
   .turn .round { display: inline-block; font-size: 12px; font-weight: 700; background: #fff; border-radius: 999px; padding: 2px 10px; border: 1px solid var(--accent-line); }
   .turn .who { font-size: 24px; font-weight: 800; margin-top: 4px; }
@@ -123,10 +123,10 @@
     background: #fff; color: var(--miss); border: 2px solid var(--miss); border-radius: 999px; padding: 2px 12px;
   }
 
-  .board { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px 0; }
+  .board { display: flex; flex-direction: column; gap: 5px; padding: 8px 12px 0; }
   .p-row {
     display: grid; grid-template-columns: 18px 1fr auto 58px; align-items: center; gap: 8px;
-    background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px;
+    background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 4px 10px;
   }
   .p-row.now { background: var(--accent-soft); border-color: var(--accent-line); box-shadow: 0 0 0 2px var(--accent-line); }
   .p-row .mark { color: var(--accent); font-size: 14px; }
@@ -168,12 +168,52 @@
   .pin.zero { border-color: var(--miss); color: var(--miss); }
   .pin.fault { border-color: var(--fault); color: var(--fault); }
   .pin small { font-size: 11px; font-weight: 700; }
-  /* 押し方のガイド。どのピンが倒れたかは選ばず、点数を1つ押すだけ */
-  .pad-hint {
-    grid-column: 1 / -1; text-align: center; font-size: 13px; color: var(--text-sub);
-    margin: -2px 0 -2px;
+  /* ===== 入力の分け方 ===== */
+  /* 案1: 「1本だけ」「2本以上」の切りかえ。1本だけ＝ピンの番号、2本以上＝本数 */
+  .mode-switch {
+    grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr;
+    border: 2px solid var(--pin-edge); border-radius: 12px; overflow: hidden; background: #fff;
   }
-  .pad-hint b { color: var(--text); }
+  .mode-switch span {
+    min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; line-height: 1.15; color: var(--text-sub);
+  }
+  .mode-switch span small { font-size: 11px; font-weight: 700; }
+  .mode-switch span + span { border-left: 2px solid var(--pin-edge); }
+  .mode-switch .on-pin { background: var(--accent); color: #fff; }
+  .mode-switch .on-count { background: #6B4226; color: #fff; }
+  .pad-q { grid-column: 1 / -1; font-size: 13px; font-weight: 700; color: var(--text-sub); margin: -2px 0; }
+  /* 本数ボタン: ピンの形にせず、丸い札＋「本」で別物に見せる */
+  .count {
+    height: 58px; border-radius: 999px; border: 2px solid #6B4226; background: #fff; color: #6B4226;
+    display: flex; align-items: baseline; justify-content: center; gap: 1px; padding-top: 10px;
+    font-weight: 800;
+  }
+  .count b { font-family: var(--font-num); font-size: 26px; line-height: 1; }
+  .count small { font-size: 13px; }
+  .count.blank { visibility: hidden; }
+
+  /* 案2: まず「どうだった？」を聞き、次に番号か本数をえらぶ */
+  .choice {
+    grid-column: span 2; height: 72px; border-radius: 14px; border: 2px solid var(--pin-edge); background: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px; line-height: 1.2;
+  }
+  .choice small { font-size: 12px; font-weight: 700; color: var(--text-sub); }
+  .choice.one { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .choice.one small, .choice.many small { color: #fff; }
+  .choice.many { background: #6B4226; border-color: #6B4226; color: #fff; }
+  .choice.zero { border-color: var(--miss); color: var(--miss); }
+  .choice.fault { border-color: var(--fault); color: var(--fault); }
+  .step-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-weight: 800; }
+  .step-head .back { font-size: 13px; border: 2px solid var(--line); border-radius: 999px; padding: 4px 10px; background: #fff; }
+
+  .pad-cards { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+  .pad-card { width: 360px; max-width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .pad-card .pad { border: 2px solid var(--line); border-radius: 16px; margin-top: 0; }
+  .pad-card .cap { font-weight: 700; color: var(--text-sub); font-size: 14px; }
+  .pad-card .cap b { color: var(--text); }
+  .pros { font-size: 13px; background: #fff; border-radius: 10px; padding: 8px 10px; }
   .tools { grid-column: 1 / -1; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
   .tools .btn { min-height: 44px; font-size: 13px; }
 
@@ -289,7 +329,7 @@
         </div>
 
         <div class="pad">
-          <div class="pad-hint"><b>1本だけ</b> → ピンの番号 ／ <b>2本以上</b> → たおれた本数</div>
+          <div class="mode-switch"><span class="on-pin">1本だけ<small>ピンの番号をえらぶ</small></span><span>2本以上<small>たおれた本数をえらぶ</small></span></div>
           <span class="pin">1</span><span class="pin">2</span><span class="pin">3</span><span class="pin">4</span>
           <span class="pin">5</span><span class="pin">6</span><span class="pin">7</span><span class="pin">8</span>
           <span class="pin">9</span><span class="pin">10</span><span class="pin">11</span><span class="pin">12</span>
@@ -333,6 +373,83 @@
             <span class="btn sub">↩︎ さっきの1投を<br>とりけす</span>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section">入力の分け方 ― 2つの案</h2>
+  <p style="margin:0 0 12px">「1本だけ倒れた（ピンの番号）」と「2本以上倒れた（本数）」を、入力の場所から分けます。ピンの形のボタンは「ピンの番号」を選ぶときだけ使い、本数は丸い札＋「本」で別物に見せます。</p>
+
+  <h3 style="margin:16px 0 8px">案1　切りかえ式（おすすめ）</h3>
+  <div class="pad-cards">
+    <div class="pad-card">
+      <div class="cap"><b>1本だけ</b>（はじめはこちら。1投ごとにここへ戻る）</div>
+      <div class="pad">
+        <div class="mode-switch"><span class="on-pin">1本だけ<small>ピンの番号をえらぶ</small></span><span>2本以上<small>たおれた本数をえらぶ</small></span></div>
+        <span class="pin">1</span><span class="pin">2</span><span class="pin">3</span><span class="pin">4</span>
+        <span class="pin">5</span><span class="pin">6</span><span class="pin">7</span><span class="pin">8</span>
+        <span class="pin">9</span><span class="pin">10</span><span class="pin">11</span><span class="pin">12</span>
+        <span class="pin zero">0点<small>たおれなかった</small></span>
+        <span class="pin fault">フォルト<small>ルールいはん</small></span>
+      </div>
+    </div>
+    <div class="pad-card">
+      <div class="cap"><b>2本以上</b> に切りかえたとき</div>
+      <div class="pad">
+        <div class="mode-switch"><span>1本だけ<small>ピンの番号をえらぶ</small></span><span class="on-count">2本以上<small>たおれた本数をえらぶ</small></span></div>
+        <span class="count"><b>2</b><small>本</small></span><span class="count"><b>3</b><small>本</small></span><span class="count"><b>4</b><small>本</small></span><span class="count"><b>5</b><small>本</small></span>
+        <span class="count"><b>6</b><small>本</small></span><span class="count"><b>7</b><small>本</small></span><span class="count"><b>8</b><small>本</small></span><span class="count"><b>9</b><small>本</small></span>
+        <span class="count"><b>10</b><small>本</small></span><span class="count"><b>11</b><small>本</small></span><span class="count"><b>12</b><small>本</small></span><span class="count blank"></span>
+        <span class="pin zero">0点<small>たおれなかった</small></span>
+        <span class="pin fault">フォルト<small>ルールいはん</small></span>
+      </div>
+    </div>
+    <div class="pad-card">
+      <div class="cap">よいところ／気になるところ</div>
+      <div class="pros">
+        ○ 1本だけのときは、いつもどおり<b>1回押すだけ</b><br>
+        ○ 番号と本数で、ボタンの形と色がちがうので迷いにくい<br>
+        △ 2本以上のときは、切りかえ＋本数で<b>2回</b>押す<br>
+        △ 切りかえを忘れると、本数のつもりで番号を押してしまう（点数は同じなので記録は正しい）
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin:24px 0 8px">案2　質問式（2ステップ）</h3>
+  <div class="pad-cards">
+    <div class="pad-card">
+      <div class="cap"><b>ステップ1</b>：どうだった？</div>
+      <div class="pad">
+        <span class="choice one">1本だけ<small>たおれた</small></span>
+        <span class="choice many">2本以上<small>たおれた</small></span>
+        <span class="choice zero">0点<small>たおれなかった</small></span>
+        <span class="choice fault">フォルト<small>ルールいはん</small></span>
+      </div>
+    </div>
+    <div class="pad-card">
+      <div class="cap"><b>ステップ2</b>：「1本だけ」→ どのピン？</div>
+      <div class="pad">
+        <div class="step-head"><span class="back">← もどる</span>たおれたピンの番号は？</div>
+        <span class="pin">1</span><span class="pin">2</span><span class="pin">3</span><span class="pin">4</span>
+        <span class="pin">5</span><span class="pin">6</span><span class="pin">7</span><span class="pin">8</span>
+        <span class="pin">9</span><span class="pin">10</span><span class="pin">11</span><span class="pin">12</span>
+      </div>
+    </div>
+    <div class="pad-card">
+      <div class="cap"><b>ステップ2</b>：「2本以上」→ 何本？</div>
+      <div class="pad">
+        <div class="step-head"><span class="back">← もどる</span>たおれた本数は？</div>
+        <span class="count"><b>2</b><small>本</small></span><span class="count"><b>3</b><small>本</small></span><span class="count"><b>4</b><small>本</small></span><span class="count"><b>5</b><small>本</small></span>
+        <span class="count"><b>6</b><small>本</small></span><span class="count"><b>7</b><small>本</small></span><span class="count"><b>8</b><small>本</small></span><span class="count"><b>9</b><small>本</small></span>
+        <span class="count"><b>10</b><small>本</small></span><span class="count"><b>11</b><small>本</small></span><span class="count"><b>12</b><small>本</small></span><span class="count blank"></span>
+      </div>
+    </div>
+    <div class="pad-card">
+      <div class="cap">よいところ／気になるところ</div>
+      <div class="pros">
+        ○ 質問に答えるだけなので、はじめての人・年配の人でも<b>いちばん迷わない</b><br>
+        ○ ボタンが大きく、押しまちがいが少ない<br>
+        △ 0点・フォルト以外は<b>いつも2回</b>押す（試合のテンポは少しゆっくり）
       </div>
     </div>
   </div>
