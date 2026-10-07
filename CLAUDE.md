@@ -33,4 +33,6 @@
 
 - アイコン・カード画像の絵は `favicon.svg` が元。変えたら `bash scripts/brand/generate.sh` で `icon-180.png` と `ogp.png` を作り直す
 - 外部への通信や読み込みを足すと、`server/.htaccess` の CSP（`connect-src 'none'` など）で本番だけ壊れる。足す場合は CSP も更新する
+- CSP は index.html の <script>・<style> の中身のハッシュで許可している（`scripts/csp-hashes.pl` → `scripts/build.sh`）。<script>/<style> を増やしても自動で入るが、`style="…"` 属性・`onclick="…"` 属性・JS からの `el.style` 書き換えは動かないので使わない
+- 本番と同じ CSP で確かめるときは `.claude/launch.json` の `play-molkky-dist`（`scripts/serve-dist.py`）で開く
 - ドメインは `index.html`（canonical・OGP）・`scripts/brand/ogp.html`・`server/.htaccess`・`.github/workflows/deploy.yml`・`docs/` に書かれている。変えるときは `grep -rn play-molkky.onga-mirai-tech.com` で漏れなく置き換える

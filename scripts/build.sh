@@ -22,8 +22,17 @@ for f in "${PUBLIC_FILES[@]}"; do
   cp -R "$f" "dist/$f"
 done
 
-# サーバー（Xserver / Apache）専用の設定
-cp server/.htaccess dist/.htaccess
+# サーバー（Xserver / Apache）専用の設定。
+# CSP に index.html の <script> / <style> のハッシュを埋め込む（中身が変わるたびに計算し直す）
+SCRIPT_HASHES="$(perl scripts/csp-hashes.pl index.html script)"
+STYLE_HASHES="$(perl scripts/csp-hashes.pl index.html style)"
+sed -e "s|__INLINE_SCRIPT_HASHES__|$SCRIPT_HASHES|" \
+    -e "s|__INLINE_STYLE_HASHES__|$STYLE_HASHES|" \
+    server/.htaccess > dist/.htaccess
+if grep 'Content-Security-Policy' dist/.htaccess | grep -qE "__INLINE_|'unsafe-inline'"; then
+  echo "dist/.htaccess の CSP にハッシュを埋め込めませんでした" >&2
+  exit 1
+fi
 
 echo "dist/ を作成しました:"
 find dist -type f | sort

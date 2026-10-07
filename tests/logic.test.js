@@ -271,6 +271,28 @@ test("保存データの読み込み: 名前は20文字まで、戻り点「半�
   assert.equal(restored.settings.resetValue, 20);
 });
 
+test("名前の見えない文字を取りのぞく（文字の向きを変える文字・制御文字・幅ゼロの空白）", () => {
+  assert.equal(L.cleanName("たろう"), "たろう");
+  assert.equal(L.cleanName("‮うろた"), "うろた");                 // 右から左に見せる文字
+  assert.equal(L.cleanName("は​な⁦こ⁩"), "はなこ");      // 幅ゼロの空白・向きの指定
+  assert.equal(L.cleanName("けん\nた\t\u0007"), "けん た");            // 改行・タブ・ベル
+  assert.equal(L.cleanName("  チーム　 A  "), "チーム A");              // 空白は1つにまとめる（全角空白も）
+  assert.equal(L.cleanName("👨‍👩‍👧"), "👨‍👩‍👧"); // 絵文字の組み合わせ（ZWJ）は残す
+  assert.equal(L.cleanName("❤️"), "❤️");                     // 異体字セレクタは残す
+  assert.equal(L.cleanName("😀".repeat(25)), "😀".repeat(20));          // 20文字まで（絵文字を途中で切らない）
+  assert.equal(L.cleanName("​‮"), "");
+  assert.equal(L.cleanName(undefined), "");
+});
+
+test("保存データの名前も、見えない文字を取りのぞき、空になったら「プレイヤーN」にする", () => {
+  const { game } = play([]);
+  const data = JSON.parse(JSON.stringify({ ...game, version: 1 }));
+  data.players[0].name = "‮うろた";
+  data.players[1].name = "​";
+  const restored = L.restoreGame(data);
+  assert.deepEqual(restored.players.map((p) => p.name), ["うろた", "プレイヤー2"]);
+});
+
 test("前回の準備（ルールと名前）の読み込み", () => {
   assert.equal(L.restoreSetup(null), null);
   assert.deepEqual(L.restoreSetup({ settings: { ...L.DEFAULT_SETTINGS, target: 35 }, names: ["たろう", "はなこ", 3] }), {

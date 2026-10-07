@@ -260,7 +260,7 @@ rsync は `--delete` で同期するため、デプロイ先は必ずこのサ�
 - HTTP と、正規ホスト名以外（`onga-mirai-tech.com/play-molkky.onga-mirai-tech.com/` 経由など）からのアクセスを `https://play-molkky.onga-mirai-tech.com/` へ301転送する
 - `index.html` は `Cache-Control: no-cache`（更新後に古い版が表示され続けるのを防ぐ）
 - セキュリティヘッダー（HSTS・nosniff・X-Frame-Options・Referrer-Policy・Permissions-Policy）を付ける。HSTSは1年（公開直後の1日から 2026-10-07 に延長）
-- CSP は `connect-src 'none'` で外部通信を禁止し、「サーバーへ何も送らない」を仕組みで保証する。1ファイル構成のため script/style は `'unsafe-inline'` を許可する（外部読み込みは禁止のまま）
+- CSP は `connect-src 'none'` で外部通信を禁止し、「サーバーへ何も送らない」を仕組みで保証する。index.html に直接書いた script/style は、中身の SHA-256 ハッシュだけを許可する（`'unsafe-inline'` は使わない。ハッシュは `scripts/build.sh` がビルドのたびに計算して `dist/.htaccess` に埋め込む。2026-10-07 変更）
 
 画面消灯防止（Wake Lock）はHTTPSでしか動かないため、SSLは必須とする。
 

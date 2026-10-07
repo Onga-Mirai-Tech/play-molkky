@@ -713,6 +713,15 @@ const MolkkyLogic = (() => {
   const NAME_MAX = 20;
   const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 
+  // 名前から、表示を紛らわしくする見えない文字を取りのぞく（改行などの制御文字、文字の向きを変える文字、
+  // 幅ゼロの空白）。絵文字の組み合わせに使う ZWJ（U+200D）と異体字セレクタは残す。空白は1つにまとめ、20文字まで。
+  const INVISIBLE = /[\u0000-\u001F\u007F-\u009F؜​‎‏‪-‮⁠-⁤⁦-⁯﻿]/g;
+  function cleanName(name) {
+    // 改行・タブは区切りとして空白にしてから、残りの見えない文字を消す
+    const s = String(name ?? "").replace(/\s+/g, " ").replace(INVISIBLE, "").replace(/ {2,}/g, " ").trim();
+    return Array.from(s).slice(0, NAME_MAX).join("");
+  }
+
   function cleanSettings(s) {
     if (!isObj(s)) return null;
     const out = {
@@ -749,7 +758,7 @@ const MolkkyLogic = (() => {
       const game = {
         version: VERSION,
         settings,
-        players: players.map((p) => ({ id: p.id, name: p.name.slice(0, NAME_MAX) })),
+        players: players.map((p, i) => ({ id: p.id, name: cleanName(p.name) || `プレイヤー${i + 1}` })),
         throws: throws.map((t) => ({ playerId: t.playerId, points: t.points, fault: t.fault, at: t.at })),
         startedAt: typeof data.startedAt === "string" ? data.startedAt : null,
       };
@@ -765,7 +774,7 @@ const MolkkyLogic = (() => {
     if (!isObj(data)) return null;
     const settings = cleanSettings(data.settings) || { ...DEFAULT_SETTINGS };
     const names = Array.isArray(data.names)
-      ? data.names.filter((n) => typeof n === "string").map((n) => n.slice(0, NAME_MAX)).slice(0, LIMITS.playersMax)
+      ? data.names.filter((n) => typeof n === "string").map(cleanName).slice(0, LIMITS.playersMax)
       : [];
     while (names.length < LIMITS.playersMin) names.push("");
     return { settings, names };
@@ -773,7 +782,7 @@ const MolkkyLogic = (() => {
 
   return Object.freeze({
     DEFAULT_SETTINGS, LIMITS, VERSION, resetPoint, validateSetup, applyThrow, computeState, ranking, rematchOrder,
-    restoreGame, restoreSetup,
+    cleanName, restoreGame, restoreSetup,
   });
 })();
 // ==== LOGIC END ====
@@ -989,8 +998,9 @@ function startGame() {
   if (L.validateSetup(s, app.setup.players.length).length) return;
   if (s.resetMode === "half") s.resetValue = L.resetPoint(s);
   // 次に開いたときの準備画面の初期値（空欄の名前は空欄のまま覚える）
-  store.set(STORE_SETUP, { settings: s, names: app.setup.players.map((p) => p.name.trim()) });
-  beginGame(s, app.setup.players.map((p, i) => p.name.trim() || defaultName(i)));
+  const names = app.setup.players.map((p) => L.cleanName(p.name));
+  store.set(STORE_SETUP, { settings: s, names });
+  beginGame(s, names.map((n, i) => n || defaultName(i)));
 }
 
 function initSetup() {

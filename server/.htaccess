@@ -32,10 +32,12 @@ Options -Indexes
   # screen-wake-lock は試合中の画面消灯防止（F-12）で使うため制限しない
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
 
-  # CSP：index.html 1ファイル構成のため、インラインの script/style のみ許可する。
+  # CSP：index.html に直接書いた <script> と <style> だけを、中身のハッシュで許可する。
+  #  - __INLINE_*_HASHES__ は scripts/build.sh がビルドのたびに計算して置きかえる（このファイルを直接置かないこと）
+  #  - 'unsafe-inline' は使わない。万一 HTML を差しこまれても、そのスクリプトは動かない
   #  - 外部からの読み込みは一切しない（CDN・フォントなし）
   #  - connect-src 'none'：どこにも通信しない（プレイヤー名などをサーバーへ送らない）
-  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+  Header always set Content-Security-Policy "default-src 'none'; script-src __INLINE_SCRIPT_HASHES__; style-src __INLINE_STYLE_HASHES__; img-src 'self' data:; manifest-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 </IfModule>
 
 # ---------------------------------------------------------------------

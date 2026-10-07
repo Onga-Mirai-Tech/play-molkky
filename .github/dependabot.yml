@@ -1,0 +1,12 @@
+# GitHub Actions の部品（actions/checkout など）の新しい版が出たら、更新の Pull Request を作る。
+# 部品は安全のため版（コミットのハッシュ）を固定しているので、自動では新しくならない。
+# 届いた Pull Request は、テストが通ったのを確かめてから手動でマージする。
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "Actions 更新"
+    labels: []

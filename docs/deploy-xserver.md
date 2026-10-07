@@ -90,4 +90,4 @@ bash scripts/setup-deploy-env.sh
 | `Permission denied (publickey)` | 公開鍵がサーバーに登録されているか、`XSERVER_SSH_KEY` に秘密鍵全体が入っているか |
 | SSH 接続がタイムアウトする | GitHub Actions の実行環境の IP によっては接続できないことがある。deploy-retry が自動でやり直す。両方失敗したら「Re-run failed jobs」 |
 | `XSERVER_DEPLOY_PATH は public_html 配下の…` | サイト専用でない場所を指定していないか（`--delete` で他サイトを消さないための安全装置） |
-| 画面が崩れる・ボタンが動かない | コンソールの CSP 違反を確認し、`server/.htaccess` の CSP を見直す |
+| 画面が崩れる・ボタンが動かない | コンソールの CSP 違反を確認する。index.html を手で直してビルドせずに置いた場合はハッシュがずれるので、必ず `scripts/build.sh` を通す（デプロイは自動で通る）。ローカルでは `python3 scripts/serve-dist.py` で本番と同じ CSP を確認できる |
