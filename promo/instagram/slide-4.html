@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!-- 4枚目: ゴールの画面と、きろく（スコアシート） -->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="slide.css">
+<style>
+  .pair { position: absolute; top: 330px; left: 60px; right: 60px; display: flex; justify-content: space-between; }
+  .col { width: 460px; display: flex; flex-direction: column; align-items: center; }
+  .col .phone { position: relative; width: 420px; height: 640px; }
+  .col h2 { margin-top: 28px; font-size: 40px; font-weight: 700; }
+  .col p { margin-top: 6px; font-size: 28px; color: #7A5537; text-align: center; line-height: 1.45; }
+  .again { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; }
+  .again .pill { font-size: 32px; padding: 14px 34px; }
+</style>
+</head>
+<body>
+  <div class="page">4 / 5</div>
+  <h1 class="title">ゴールしたら <b>順位</b>も <b>きろく</b>も<small>あとから ふりかえるのも たのしい</small></h1>
+
+  <div class="pair">
+    <div class="col">
+      <div class="phone"><img src="screens/result.jpg" alt=""></div>
+      <h2>🏆 順位を 自動で表示</h2>
+      <p>同じ点数の人は 同じ順位に</p>
+    </div>
+    <div class="col">
+      <div class="phone"><img src="screens/history.jpg" alt=""></div>
+      <h2>📋 1投ずつの きろく</h2>
+      <p>スコアシートのように 見られます</p>
+    </div>
+  </div>
+
+  <div class="again"><span class="pill">🔁 同じメンバーで もう一回 も すぐ！</span></div>
+</body>
+</html>

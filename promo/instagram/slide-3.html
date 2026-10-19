@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- 3枚目: つかいかた（名前を入れる → どうだった？ → 番号か本数をえらぶ） -->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="slide.css">
+<style>
+  .steps { position: absolute; top: 330px; left: 40px; right: 40px; display: flex; justify-content: space-between; }
+  .step { width: 316px; display: flex; flex-direction: column; align-items: center; }
+  .step .phone { position: relative; width: 300px; height: 650px; border-width: 10px; border-radius: 38px; }
+  .num {
+    width: 76px; height: 76px; margin: 26px 0 12px; border-radius: 50%;
+    background: #B84E0B; color: #FFFFFF; font-size: 42px; font-weight: 700;
+    display: grid; place-items: center;
+  }
+  .step p { text-align: center; font-size: 31px; font-weight: 700; line-height: 1.45; }
+  .note { position: absolute; left: 0; right: 0; bottom: 74px; text-align: center; }
+  .note .pill { font-size: 32px; padding: 14px 34px; }
+  .note b { color: #B84E0B; }
+</style>
+</head>
+<body>
+  <div class="page">3 / 5</div>
+  <h1 class="title">つかいかたは <b>かんたん3ステップ</b><small>はじめての人でも まよわない</small></h1>
+
+  <div class="steps">
+    <div class="step">
+      <div class="phone"><img src="screens/setup.jpg" alt=""></div>
+      <div class="num">1</div>
+      <p>名前を入れて<br>「はじめる！」</p>
+    </div>
+    <div class="step">
+      <div class="phone"><img src="screens/game.jpg" alt="" style="object-position: bottom"></div>
+      <div class="num">2</div>
+      <p>「どうだった？」に<br>こたえる</p>
+    </div>
+    <div class="step">
+      <div class="phone"><img src="screens/pins.jpg" alt="" style="object-position: bottom"></div>
+      <div class="num">3</div>
+      <p>番号か 本数を<br>えらぶだけ</p>
+    </div>
+  </div>
+
+  <div class="note"><span class="pill"><b>1本だけ</b> → ピンの番号　／　<b>2本以上</b> → たおれた本数</span></div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!-- 2枚目: できること（ルールの計算・おしまいの判定・やりなおし・自動保存・ルール変更） -->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="slide.css">
+<style>
+  .list { position: absolute; top: 330px; left: 70px; right: 70px; display: flex; flex-direction: column; gap: 22px; }
+  .item {
+    display: flex; align-items: center; gap: 30px;
+    background: #FFFFFF; border: 4px solid #E6CCA6; border-radius: 34px; padding: 24px 34px;
+  }
+  .icon {
+    flex: none; width: 116px; height: 116px; border-radius: 50%;
+    background: #FFE2B3; border: 4px solid #F59A3C;
+    display: grid; place-items: center; font-size: 60px;
+  }
+  .item h2 { font-size: 44px; font-weight: 700; line-height: 1.3; }
+  .item h2 b { color: #B84E0B; }
+  .item p { margin-top: 6px; font-size: 29px; color: #7A5537; line-height: 1.45; }
+</style>
+</head>
+<body>
+  <div class="page">2 / 5</div>
+  <h1 class="title"><b>もるっくん</b>が ぜんぶ けいさん！<small>むずかしい ルールも おまかせ</small></h1>
+
+  <div class="list">
+    <div class="item">
+      <div class="icon">🎯</div>
+      <div><h2><b>50点ぴったり</b>で ゴール</h2><p>こえたら 25点に もどる計算も 自動です</p></div>
+    </div>
+    <div class="item">
+      <div class="icon">⚠️</div>
+      <div><h2>0点が<b>3回</b>つづくと おしまい</h2><p>あと1回のときは「がんばって！」と お知らせ</p></div>
+    </div>
+    <div class="item">
+      <div class="icon">↩️</div>
+      <div><h2>まちがえても <b>だいじょうぶ</b></h2><p>「ひとつもどす」で 何回でも やりなおせます</p></div>
+    </div>
+    <div class="item">
+      <div class="icon">💤</div>
+      <div><h2>スリープしても <b>つづきから</b></h2><p>1投ごとに スマホの中へ 自動で保存</p></div>
+    </div>
+    <div class="item">
+      <div class="icon">⚙️</div>
+      <div><h2>ルールは <b>自由に</b> 変えられる</h2><p>ゴールの点数・もどる点数・回数・フォルトの扱い</p></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!-- 1枚目（表紙）: ひと目で「モルックの点数をスマホで自動けいさん」とわかるように -->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="slide.css">
+<style>
+  .label { position: absolute; top: 84px; left: 0; right: 0; text-align: center; }
+  .label .pill { background: #FFFFFF; border-color: #FFFFFF; color: #B84E0B; }
+  .head {
+    position: absolute; top: 178px; left: 0; right: 0; text-align: center;
+    font-size: 74px; line-height: 1.36; text-shadow: 0 4px 0 rgba(180, 83, 12, .45);
+  }
+  .phone { left: 470px; top: 470px; width: 470px; height: 1018px; transform: rotate(4deg); }
+  .mascot { left: 92px; top: 700px; width: 380px; transform: rotate(-6deg); }
+  .bubble { left: 110px; top: 560px; }
+  .bubble::after {
+    content: ""; position: absolute; left: 150px; bottom: -22px;
+    border: 14px solid transparent; border-top: 16px solid #FFFFFF; border-bottom: 0;
+  }
+  .band {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 196px;
+    background: #FFF8EE; color: #4A2F1B;
+    display: flex; align-items: center; justify-content: center; gap: 26px;
+    border-top: 6px solid #FFE2B3;
+  }
+  .band img { width: 104px; height: 104px; }
+  .band .name { font-size: 64px; font-weight: 700; color: #B84E0B; line-height: 1.1; }
+  .band .tags { font-size: 28px; font-weight: 700; margin-top: 6px; }
+  .swipe { position: absolute; left: 64px; bottom: 216px; font-size: 28px; font-weight: 700; color: #FFFFFF; text-shadow: 0 2px 0 rgba(180, 83, 12, .5); }
+</style>
+</head>
+<body class="orange">
+  <div class="label"><span class="pill">無料・インストール不要の WEBアプリ</span></div>
+  <h1 class="head">モルックの点数けいさん、<br>スマホに おまかせ！</h1>
+
+  <div class="phone"><img src="screens/game.jpg" alt=""></div>
+  <div class="bubble">ぼくが けいさん するよ！</div>
+  <img class="mascot" src="../../favicon.svg" alt="">
+
+  <div class="band">
+    <img src="../../favicon.svg" alt="">
+    <div>
+      <div class="name">もるっくん</div>
+      <div class="tags">スマホ1台で ／ みんなの点数を 自動けいさん</div>
+    </div>
+  </div>
+  <div class="swipe">スワイプしてね →</div>
+</body>
+</html>
