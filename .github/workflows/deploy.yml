@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false   # GitHub のトークンを作業フォルダに残さない
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -72,6 +74,8 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.gate.outputs.enabled == 'true'
+        with:
+          persist-credentials: false   # GitHub のトークンを作業フォルダに残さない
 
       - uses: ./.github/actions/deploy-xserver
         if: steps.gate.outputs.enabled == 'true'
@@ -108,6 +112,8 @@ jobs:
       - run: echo "::warning::最初のデプロイに失敗したため、別の実行環境で再試行します。"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false   # GitHub のトークンを作業フォルダに残さない
 
       - uses: ./.github/actions/deploy-xserver
         with:

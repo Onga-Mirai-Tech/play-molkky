@@ -29,14 +29,21 @@ DEFAULT_PATH="/home/${SSH_USER}/${MAIN_DOMAIN}/public_html/${DOMAIN}"
 read -r -p "デプロイ先 [${DEFAULT_PATH}]: " DEPLOY_PATH
 DEPLOY_PATH="${DEPLOY_PATH:-$DEFAULT_PATH}"
 
+# 入力のチェック。サーバーで実行するコマンドや rsync の宛先に入るので、
+# シェルで特別な意味を持つ文字（空白・引用符など）や「..」は受け付けない（.github/actions/deploy-xserver と同じ規則）
+fail() { echo "$1" >&2; exit 1; }
+[[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || fail "SSH ホスト名に使えない文字があります"
+[[ "$SSH_USER" =~ ^[A-Za-z0-9_-]+$ ]] || fail "サーバーIDに使えない文字があります"
+[[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]] || fail "デプロイ先に使えない文字があります"
+[[ "$DEPLOY_PATH" =~ (^|/)\.\.?(/|$) ]] && fail "デプロイ先に「.」「..」は使えません"
 case "${DEPLOY_PATH%/}" in
   */public_html/?*) ;;
-  *) echo "デプロイ先は public_html 配下のサブドメイン用ディレクトリにしてください" >&2; exit 1 ;;
+  *) fail "デプロイ先は public_html 配下のサブドメイン用ディレクトリにしてください" ;;
 esac
 
 echo
 echo "-- サーバーに接続して、デプロイ先のディレクトリがあることを確認します"
-if ! ssh -p "$PORT" -i "$KEY_FILE" -o ConnectTimeout=20 "${SSH_USER}@${SSH_HOST}" "test -d '${DEPLOY_PATH}' && echo 'OK: ${DEPLOY_PATH}'"; then
+if ! ssh -p "$PORT" -i "$KEY_FILE" -o ConnectTimeout=20 "${SSH_USER}@${SSH_HOST}" "test -d $(printf '%q' "$DEPLOY_PATH") && echo OK"; then
   echo "接続できない、またはデプロイ先がありません。サブドメイン設定（1-1）とSSH設定を確認してください" >&2
   exit 1
 fi

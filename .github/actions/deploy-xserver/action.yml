@@ -36,17 +36,27 @@ runs:
       shell: bash
       run: bash scripts/build.sh
 
-    - name: Validate deploy path
+    - name: Validate deploy settings
       shell: bash
       env:
         DEPLOY_PATH: ${{ inputs.deploy-path }}
+        HOST: ${{ inputs.host }}
+        USER: ${{ inputs.user }}
+        PORT: ${{ inputs.port }}
       run: |
         # rsync --delete で意図しないディレクトリ（メインドメインの public_html 直下など）を
-        # 消してしまわないよう、public_html 配下のサブディレクトリであることを確認する
+        # 消してしまわないよう、public_html 配下のサブディレクトリであることを確認する。
+        # 「..」で親に戻る指定や、シェルで特別な意味を持つ文字（空白・引用符など）も受け付けない
+        fail() { echo "::error::$1"; exit 1; }
+        [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]] || fail "XSERVER_DEPLOY_PATH に使えない文字があります"
+        [[ "$DEPLOY_PATH" =~ (^|/)\.\.?(/|$) ]] && fail "XSERVER_DEPLOY_PATH に「.」「..」は使えません"
         case "${DEPLOY_PATH%/}" in
           */public_html/?*) ;;
-          *) echo "::error::XSERVER_DEPLOY_PATH は public_html 配下のサブドメイン用ディレクトリを指定してください"; exit 1 ;;
+          *) fail "XSERVER_DEPLOY_PATH は public_html 配下のサブドメイン用ディレクトリを指定してください" ;;
         esac
+        [[ "$HOST" =~ ^[A-Za-z0-9.-]+$ ]] || fail "XSERVER_SSH_HOST に使えない文字があります"
+        [[ "$USER" =~ ^[A-Za-z0-9_-]+$ ]] || fail "XSERVER_SSH_USER に使えない文字があります"
+        [[ "$PORT" =~ ^[0-9]{1,5}$ ]] || fail "XSERVER_SSH_PORT は数字で指定してください"
 
     - name: Setup SSH
       shell: bash

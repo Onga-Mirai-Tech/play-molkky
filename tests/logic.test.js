@@ -273,22 +273,22 @@ test("保存データの読み込み: 名前は20文字まで、戻り点「半�
 
 test("名前の見えない文字を取りのぞく（文字の向きを変える文字・制御文字・幅ゼロの空白）", () => {
   assert.equal(L.cleanName("たろう"), "たろう");
-  assert.equal(L.cleanName("‮うろた"), "うろた");                 // 右から左に見せる文字
-  assert.equal(L.cleanName("は​な⁦こ⁩"), "はなこ");      // 幅ゼロの空白・向きの指定
+  assert.equal(L.cleanName("\u202Eうろた"), "うろた");                 // 右から左に見せる文字
+  assert.equal(L.cleanName("は\u200Bな\u2066こ\u2069"), "はなこ");      // 幅ゼロの空白・向きの指定
   assert.equal(L.cleanName("けん\nた\t\u0007"), "けん た");            // 改行・タブ・ベル
   assert.equal(L.cleanName("  チーム　 A  "), "チーム A");              // 空白は1つにまとめる（全角空白も）
-  assert.equal(L.cleanName("👨‍👩‍👧"), "👨‍👩‍👧"); // 絵文字の組み合わせ（ZWJ）は残す
-  assert.equal(L.cleanName("❤️"), "❤️");                     // 異体字セレクタは残す
+  assert.equal(L.cleanName("👨\u200D👩\u200D👧"), "👨\u200D👩\u200D👧"); // 絵文字の組み合わせ（ZWJ）は残す
+  assert.equal(L.cleanName("❤\uFE0F"), "❤\uFE0F");                     // 異体字セレクタは残す
   assert.equal(L.cleanName("😀".repeat(25)), "😀".repeat(20));          // 20文字まで（絵文字を途中で切らない）
-  assert.equal(L.cleanName("​‮"), "");
+  assert.equal(L.cleanName("\u200B\u202E"), "");
   assert.equal(L.cleanName(undefined), "");
 });
 
 test("保存データの名前も、見えない文字を取りのぞき、空になったら「プレイヤーN」にする", () => {
   const { game } = play([]);
   const data = JSON.parse(JSON.stringify({ ...game, version: 1 }));
-  data.players[0].name = "‮うろた";
-  data.players[1].name = "​";
+  data.players[0].name = "\u202Eうろた";
+  data.players[1].name = "\u200B";
   const restored = L.restoreGame(data);
   assert.deepEqual(restored.players.map((p) => p.name), ["うろた", "プレイヤー2"]);
 });

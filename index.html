@@ -506,7 +506,7 @@
       <button type="button" id="result-history">📋 きろくを見る</button>
     </div>
     <div class="btn-row">
-      <button type="button" id="result-undo">↩︎ さっきの1投を とりけす</button>
+      <button type="button" id="result-undo">↩\uFE0E さっきの1投を とりけす</button>
     </div>
   </section>
 </main>
@@ -715,7 +715,7 @@ const MolkkyLogic = (() => {
 
   // 名前から、表示を紛らわしくする見えない文字を取りのぞく（改行などの制御文字、文字の向きを変える文字、
   // 幅ゼロの空白）。絵文字の組み合わせに使う ZWJ（U+200D）と異体字セレクタは残す。空白は1つにまとめ、20文字まで。
-  const INVISIBLE = /[\u0000-\u001F\u007F-\u009F؜​‎‏‪-‮⁠-⁤⁦-⁯﻿]/g;
+  const INVISIBLE = /[\u0000-\u001F\u007F-\u009F\u061C\u200B\u200E\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g;
   function cleanName(name) {
     // 改行・タブは区切りとして空白にしてから、残りの見えない文字を消す
     const s = String(name ?? "").replace(/\s+/g, " ").replace(INVISIBLE, "").replace(/ {2,}/g, " ").trim();
@@ -1055,7 +1055,7 @@ function lastThrowLabel(entry) {
   if (!entry) return "";
   switch (entry.result) {
     case "ADD": return `+${entry.points}`;
-    case "OVER": return "こえた↩︎";
+    case "OVER": return "こえた↩\uFE0E";
     case "MISS": return entry.fault ? "フォルト" : "0点";
     case "FAULT": return "フォルト";
     case "OUT": return "おしまい";
@@ -1146,7 +1146,7 @@ function renderPad() {
   }
   const noThrows = app.game.throws.length === 0;
   items.push(h("div", { class: "tools" },
-    h("button", { type: "button", disabled: noThrows, onclick: undoThrow }, "↩︎ ひとつもどす"),
+    h("button", { type: "button", disabled: noThrows, onclick: undoThrow }, "↩\uFE0E ひとつもどす"),
     h("button", { type: "button", onclick: openHistory }, "📋 きろく"),
     h("button", { type: "button", onclick: openMenu }, "☰ メニュー"),
   ));
@@ -1214,7 +1214,7 @@ function sheetCell(e) {
   if (!e) return h("td", null);
   const marks = {
     ADD: ["", `+${e.points}`],
-    OVER: ["over", `+${e.points}↩︎`],
+    OVER: ["over", `+${e.points}↩\uFE0E`],
     MISS: e.fault ? ["fault", "F"] : ["miss", "●"],
     FAULT: ["fault", "F"],
     OUT: ["out", e.fault ? "F✕" : "●✕"],
@@ -1246,7 +1246,7 @@ function openHistory() {
       ),
       h("p", { class: "legend" },
         h("b", null, "+8"), " たおした点数 ／ ", h("b", null, "(33)"), " その時の合計", h("br"),
-        h("b", null, "↩︎"), " こえて もどった ／ ", h("b", null, "●"), " 0点 ／ ", h("b", null, "F"), " フォルト ／ ",
+        h("b", null, "↩\uFE0E"), " こえて もどった ／ ", h("b", null, "●"), " 0点 ／ ", h("b", null, "F"), " フォルト ／ ",
         h("b", null, "✕"), " おしまい ／ ", h("b", null, "★"), " ゴール"),
     );
   }
